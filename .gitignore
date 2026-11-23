@@ -4,3 +4,7 @@ __pycache__/
 .venv/
 .pytest_cache/
 eval/run.log
+evidence/ai_raw_oracle.jsonl
+evidence/ai_raw_cheat.jsonl
+evidence/ai_raw_messy.jsonl
+evidence/ai_raw_down.jsonl

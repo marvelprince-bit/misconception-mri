@@ -159,3 +159,21 @@ def cheat(prompt: str) -> str:
 
 def down(prompt: str) -> str:
     raise ProposerUnavailable("The AI service could not be reached (simulated outage).")
+
+
+def messy(rule_id: str):
+    """A writer with the right idea but sloppy formatting, the way language models often
+    reply: a ```py fence, type hints, and an explanation after the code. Type hints are
+    rejected by the sandbox. Asked to repair, it returns clean code."""
+    clean = oracle(rule_id)
+
+    def ask(prompt: str) -> str:
+        if "Your previous reply could not be used" in prompt:
+            return clean(prompt)
+        code = REFERENCE_CODE[rule_id]
+        head, rest = code.split("\n", 1)
+        args = head[head.index("(") + 1:head.index(")")].split(", ")
+        typed = "def rule(" + ", ".join(a + (": str" if a == "op" else ": int") for a in args) + "):"
+        return ("Sure! Here is the procedure.\nDESCRIPTION: the student's procedure\n```py\n"
+                + typed + "\n" + rest + "\n```\nThis function captures the pattern in the answers.")
+    return ask

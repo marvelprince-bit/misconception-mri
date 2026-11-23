@@ -35,16 +35,16 @@ from mri.student import SimulatedStudent  # noqa: E402
 OUT = Path(__file__).resolve().parent.parent / "evidence"
 
 
-def run(writer: str, seeds: int, gate: bool) -> dict:
+def run(writer: str, seeds: int, gate: bool, domains=DOMAINS) -> dict:
     rows = []
-    for domain in DOMAINS:
+    for domain in domains:
         for hidden in library(domain):
             if hidden.is_correct:
                 continue
             rules = [r for r in library(domain) if r.id != hidden.id]
             for seed in range(seeds):
-                ask = {"oracle": fakes.oracle(hidden.id), "cheat": fakes.cheat,
-                       "down": fakes.down}.get(writer) or make_proposer(writer)
+                ask = {"oracle": fakes.oracle(hidden.id), "cheat": fakes.cheat, "down": fakes.down,
+                       "messy": fakes.messy(hidden.id)}.get(writer) or make_proposer(writer)
                 session = Session(domain, rules=rules, seed=seed)
                 log = run_session(session, SimulatedStudent(hidden, 0.0, seed=seed), ask=ask, gate=gate)
                 adm = log.admission
@@ -63,6 +63,7 @@ def run(writer: str, seeds: int, gate: bool) -> dict:
                              "ai_called": log.ai_attempted, "admitted": admitted,
                              "admitted_and_truly_right": true_match, "result": result,
                              "questions": log.questions_asked,
+                             "attempts": adm.attempts if adm else 0,
                              "reason": adm.reason if adm else "; ".join(log.notes)})
     n = len(rows)
     pct = lambda k: round(100 * sum(bool(r[k]) for r in rows) / n, 1)  # noqa: E731
@@ -77,27 +78,43 @@ def run(writer: str, seeds: int, gate: bool) -> dict:
         "final_right_pct": res("right"), "final_wrong_pct": res("wrong"),
         "final_no_diagnosis_pct": res("no_diagnosis"),
         "mean_questions": round(statistics.mean(r["questions"] for r in rows), 2),
+        "repair_used_pct": round(100 * sum(r["attempts"] > 1 for r in rows) / n, 1),
+        "admitted_after_repair_pct": round(100 * sum(r["attempts"] > 1 and r["admitted"] for r in rows) / n, 1),
         "rows": rows,
     }
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--writer", choices=["oracle", "cheat", "down", "gemini", "claude"], default="oracle")
+    parser.add_argument("--writer", choices=["oracle", "cheat", "down", "messy", "gemini", "claude"],
+                        default="oracle")
     parser.add_argument("--seeds", type=int, default=20)
+    parser.add_argument("--domain", choices=list(DOMAINS), help="test one topic only (fewer API calls)")
+    parser.add_argument("--both-gates", action="store_true",
+                        help="also run with the hidden-answer check off (default for stand-ins; "
+                             "doubles the calls for a live model)")
     args = parser.parse_args()
+    live = args.writer in ("gemini", "claude")
     if args.writer == "claude" and not os.environ.get("ANTHROPIC_API_KEY"):
         sys.exit("Set ANTHROPIC_API_KEY first (see .env.example).")
     if args.writer == "gemini" and not os.environ.get("GEMINI_API_KEY"):
         sys.exit("Set GEMINI_API_KEY first (see .env.example). Nothing was run.")
 
-    results = {("on" if gate else "off"): run(args.writer, args.seeds, gate) for gate in (True, False)}
     OUT.mkdir(exist_ok=True)
+    raw = OUT / f"ai_raw_{args.writer}.jsonl"
+    raw.write_text("")  # every prompt, reply, extracted code and verdict; no keys
+    os.environ["MRI_RAW_LOG"] = str(raw)
+    gates = (True, False) if (args.both_gates or not live) else (True,)
+    domains = (args.domain,) if args.domain else DOMAINS
+    results = {("on" if gate else "off"): run(args.writer, args.seeds, gate, domains) for gate in gates}
     (OUT / f"ai_results_{args.writer}.json").write_text(json.dumps(results, indent=2))
 
     keys = ["sessions", "ai_called_pct", "admitted_pct", "admitted_rules_truly_right_pct",
-            "final_right_pct", "final_wrong_pct", "final_no_diagnosis_pct", "mean_questions"]
-    print(f"\nAI rule-writer: {args.writer}   ({sum(1 for d in DOMAINS for r in library(d) if not r.is_correct)} hidden rules x {args.seeds} simulated students)")
+            "final_right_pct", "final_wrong_pct", "final_no_diagnosis_pct", "mean_questions",
+            "repair_used_pct", "admitted_after_repair_pct"]
+    n_rules = sum(1 for d in domains for r in library(d) if not r.is_correct)
+    print(f"\nAI rule-writer: {args.writer}   ({n_rules} hidden rules x {args.seeds} simulated students)")
+    print(f"Raw prompts and replies: {raw}")
     print("| Hidden-answer check | " + " | ".join(keys) + " |")
     print("|" + "---|" * (len(keys) + 1))
     for name, r in results.items():

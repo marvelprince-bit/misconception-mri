@@ -25,6 +25,8 @@ Rubric item A4 gives points only when a PERSON checked a specific piece of AI-ma
 | 8 | 2026-11-23 | Claude | Wrote held-out set 3 (10 unseen rules) after freezing the design; replaced one rule that was identical to a library rule before any result was seen | Commit order: freeze 377934c, set 3 1d4d7f8, then results | Suggested check: confirm the commit order in `git log` | |
 | 9 | 2026-11-23 | Claude | Claude client for the live AI rule-writer (`ClaudeProposer`) | Test: fails safely with no key | Suggested check: run `python scripts/evaluate_ai.py --writer claude --seeds 5` with your key; read 5 admitted and 5 rejected rules by hand | |
 
+| 10 | 2026-11-23 | Claude | Emmanuel's first live Gemini run (3 calls: 2 rejected as malformed, 1 failed verification) was reviewed with an outside AI review. Kept: stricter prompt with a valid example, robust code extraction, one repair attempt for format or safety errors only, raw reply logging. Rejected: loosening admission for student slips, because the live test's students make no slips. | 52 tests pass; messy-format stand-in admitted 91.7% with repair, 0% without; cheater still 0% | Suggested check: rerun the live test, open `evidence/ai_raw_gemini.jsonl` and read why each reply was accepted or rejected | |
+
 ## Later AI help
 
 Add a row each time AI writes or changes something: date, tool, what it made, how you checked it, what you found, what you decided.

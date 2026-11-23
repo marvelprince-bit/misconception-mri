@@ -6,7 +6,7 @@ Built for the Global AI Builder's Challenge (Devpost, November 21 to 28, 2026).
 
 Topics: adding and subtracting negative numbers; adding, subtracting (including mixed numbers), multiplying and dividing fractions.
 
-**Status, 23 Nov 2026:** engine, AI rule-writer (tested with stand-ins), demo, 40 unit tests and four evaluations work. Not yet done: a run with a live AI model, a user interface, and any use by real students. Every number below comes from simulated students or from the published MaE examples.
+**Status, 23 Nov 2026:** engine, AI rule-writer (tested with stand-ins; first live Gemini test run by Emmanuel), demo, 52 unit tests and four evaluations work. Not yet done: a run with a live AI model, a user interface, and any use by real students. Every number below comes from simulated students or from the published MaE examples.
 
 ## The problem
 
@@ -27,6 +27,8 @@ Research calls this the *correct answer trap*: AI tutors under-detect misconcept
    - must reproduce every answer it was shown,
    - must also predict wrong answers that were hidden from it,
    - and then must pass the same prediction tests as any other rule.
+
+   If the code is rejected for format or safety reasons (for example `/` instead of `//`, or type hints), the model gets **one** repair attempt, told only the rejection message. A rule that fails the student's answers is never retried, and hidden answers never appear in any prompt. Every prompt, reply and verdict is saved to `evidence/ai_raw_<writer>.jsonl`.
 
 ## Evidence
 
@@ -66,6 +68,8 @@ Set 3 was written by the same AI that designed the safeguards, so it may share b
 | Cheater (memorises the answers it was shown) | on | **0.0%** | n/a |
 | Cheater | off | 90.6% | **0%** |
 | Outage (service down) | on | 0.0% | n/a, session continues safely |
+| Messy formatting (right idea), repair on | on | 91.7% | 100% |
+| Messy formatting, repair off | on | 0.0% | n/a |
 
 **6. Careless slips:** right rule found 94.5% of the time at 10% slips, 75.2% at 20%, 47.3% at 30%; the rest end as "no diagnosis", almost never a wrong diagnosis (0.1 to 0.2%).
 
@@ -90,7 +94,7 @@ What is different here: the tool never labels a misconception from one answer. I
 Python 3.10 or newer. Nothing to install.
 
 ```bash
-python -m unittest discover -s tests              # 40 tests
+python -m unittest discover -s tests              # 52 tests
 python scripts/demo.py --list                     # every rule the tool knows
 python scripts/demo.py --student sub_smaller_from_larger
 python scripts/demo.py --student div_across_drop_remainder
@@ -105,7 +109,7 @@ Live AI rule-writer (either provider; never commit a key, see `.env.example`):
 
 ```bash
 export ANTHROPIC_API_KEY=...   # or GEMINI_API_KEY=...
-python scripts/evaluate_ai.py --writer claude --seeds 5
+python scripts/evaluate_ai.py --writer gemini --seeds 2 --domain integers   # small, cheap first run
 python scripts/demo.py --student int_leading_minus_covers_all --hide-rule --ai claude
 ```
 
