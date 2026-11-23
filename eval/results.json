@@ -1,0 +1,1097 @@
+{
+ "seed": 20261123,
+ "students_per_rule": 200,
+ "E1": [
+  {
+   "rule": "OK",
+   "mode": "adaptive",
+   "accuracy": 1.0,
+   "mean_questions": 0.725,
+   "unresolved_after_5": 0.0
+  },
+  {
+   "rule": "OK",
+   "mode": "random",
+   "accuracy": 0.805,
+   "mean_questions": 1.48,
+   "unresolved_after_5": 0.195
+  },
+  {
+   "rule": "R01",
+   "mode": "adaptive",
+   "accuracy": 1.0,
+   "mean_questions": 1.33,
+   "unresolved_after_5": 0.0
+  },
+  {
+   "rule": "R01",
+   "mode": "random",
+   "accuracy": 0.5,
+   "mean_questions": 3.04,
+   "unresolved_after_5": 0.5
+  },
+  {
+   "rule": "R02",
+   "mode": "adaptive",
+   "accuracy": 1.0,
+   "mean_questions": 1.48,
+   "unresolved_after_5": 0.0
+  },
+  {
+   "rule": "R02",
+   "mode": "random",
+   "accuracy": 0.47,
+   "mean_questions": 3.22,
+   "unresolved_after_5": 0.53
+  },
+  {
+   "rule": "R03",
+   "mode": "adaptive",
+   "accuracy": 1.0,
+   "mean_questions": 0.615,
+   "unresolved_after_5": 0.0
+  },
+  {
+   "rule": "R03",
+   "mode": "random",
+   "accuracy": 0.885,
+   "mean_questions": 1.52,
+   "unresolved_after_5": 0.115
+  },
+  {
+   "rule": "R04",
+   "mode": "adaptive",
+   "accuracy": 1.0,
+   "mean_questions": 2.1,
+   "unresolved_after_5": 0.0
+  },
+  {
+   "rule": "R04",
+   "mode": "random",
+   "accuracy": 0.15,
+   "mean_questions": 4.66,
+   "unresolved_after_5": 0.85
+  },
+  {
+   "rule": "R05",
+   "mode": "adaptive",
+   "accuracy": 1.0,
+   "mean_questions": 2.075,
+   "unresolved_after_5": 0.0
+  },
+  {
+   "rule": "R05",
+   "mode": "random",
+   "accuracy": 0.11,
+   "mean_questions": 4.835,
+   "unresolved_after_5": 0.89
+  },
+  {
+   "rule": "R06",
+   "mode": "adaptive",
+   "accuracy": 1.0,
+   "mean_questions": 0.575,
+   "unresolved_after_5": 0.0
+  },
+  {
+   "rule": "R06",
+   "mode": "random",
+   "accuracy": 0.79,
+   "mean_questions": 2.135,
+   "unresolved_after_5": 0.21
+  },
+  {
+   "rule": "R07",
+   "mode": "adaptive",
+   "accuracy": 1.0,
+   "mean_questions": 0.66,
+   "unresolved_after_5": 0.0
+  },
+  {
+   "rule": "R07",
+   "mode": "random",
+   "accuracy": 0.715,
+   "mean_questions": 2.29,
+   "unresolved_after_5": 0.285
+  },
+  {
+   "rule": "R08",
+   "mode": "adaptive",
+   "accuracy": 1.0,
+   "mean_questions": 1.185,
+   "unresolved_after_5": 0.0
+  },
+  {
+   "rule": "R08",
+   "mode": "random",
+   "accuracy": 0.73,
+   "mean_questions": 2.755,
+   "unresolved_after_5": 0.27
+  },
+  {
+   "rule": "R09",
+   "mode": "adaptive",
+   "accuracy": 1.0,
+   "mean_questions": 0.35,
+   "unresolved_after_5": 0.0
+  },
+  {
+   "rule": "R09",
+   "mode": "random",
+   "accuracy": 0.94,
+   "mean_questions": 0.92,
+   "unresolved_after_5": 0.06
+  },
+  {
+   "rule": "R10",
+   "mode": "adaptive",
+   "accuracy": 1.0,
+   "mean_questions": 0.295,
+   "unresolved_after_5": 0.0
+  },
+  {
+   "rule": "R10",
+   "mode": "random",
+   "accuracy": 0.96,
+   "mean_questions": 0.94,
+   "unresolved_after_5": 0.04
+  },
+  {
+   "rule": "R11",
+   "mode": "adaptive",
+   "accuracy": 1.0,
+   "mean_questions": 0,
+   "unresolved_after_5": 0.0
+  },
+  {
+   "rule": "R11",
+   "mode": "random",
+   "accuracy": 1.0,
+   "mean_questions": 0.005,
+   "unresolved_after_5": 0.0
+  }
+ ],
+ "E2": [
+  {
+   "rule": "R02",
+   "op": "+",
+   "trap_questions": 140,
+   "applicable_questions": 784,
+   "trap_share": 0.179,
+   "answer_checking_marks_correct": 1.0,
+   "exposed_within_1_question": 1.0,
+   "exposed_within_2_questions": 1.0,
+   "mean_questions_to_expose": 1,
+   "exposed_within_5": 1.0
+  },
+  {
+   "rule": "R02",
+   "op": "-",
+   "trap_questions": 79,
+   "applicable_questions": 368,
+   "trap_share": 0.215,
+   "answer_checking_marks_correct": 1.0,
+   "exposed_within_1_question": 0.31,
+   "exposed_within_2_questions": 1.0,
+   "mean_questions_to_expose": 1.69,
+   "exposed_within_5": 1.0
+  },
+  {
+   "rule": "R04",
+   "op": "-",
+   "trap_questions": 2743,
+   "applicable_questions": 4558,
+   "trap_share": 0.602,
+   "answer_checking_marks_correct": 1.0,
+   "exposed_within_1_question": 0.285,
+   "exposed_within_2_questions": 1.0,
+   "mean_questions_to_expose": 1.715,
+   "exposed_within_5": 1.0
+  },
+  {
+   "rule": "R08",
+   "op": "/",
+   "trap_questions": 93,
+   "applicable_questions": 462,
+   "trap_share": 0.201,
+   "answer_checking_marks_correct": 1.0,
+   "exposed_within_1_question": 1.0,
+   "exposed_within_2_questions": 1.0,
+   "mean_questions_to_expose": 1,
+   "exposed_within_5": 1.0
+  },
+  {
+   "rule": "R09",
+   "op": "/",
+   "trap_questions": 48,
+   "applicable_questions": 784,
+   "trap_share": 0.061,
+   "answer_checking_marks_correct": 1.0,
+   "exposed_within_1_question": 1.0,
+   "exposed_within_2_questions": 1.0,
+   "mean_questions_to_expose": 1,
+   "exposed_within_5": 1.0
+  }
+ ],
+ "E3": [
+  {
+   "held_out": "R01",
+   "coverage": true,
+   "unknown": 0.995,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.005,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R02",
+   "coverage": true,
+   "unknown": 1.0,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R03",
+   "coverage": true,
+   "unknown": 1.0,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R04",
+   "coverage": true,
+   "unknown": 1.0,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R05",
+   "coverage": true,
+   "unknown": 1.0,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R06",
+   "coverage": true,
+   "unknown": 1.0,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R07",
+   "coverage": true,
+   "unknown": 1.0,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R08",
+   "coverage": true,
+   "unknown": 1.0,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R09",
+   "coverage": true,
+   "unknown": 1.0,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R10",
+   "coverage": true,
+   "unknown": 1.0,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R11",
+   "coverage": true,
+   "unknown": 1.0,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  }
+ ],
+ "E3_no_coverage": [
+  {
+   "held_out": "R01",
+   "coverage": false,
+   "unknown": 0.59,
+   "mislabeled_rule": 0.41,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R02",
+   "coverage": false,
+   "unknown": 0.49,
+   "mislabeled_rule": 0.5,
+   "mislabeled_correct": 0.01,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R03",
+   "coverage": false,
+   "unknown": 0.775,
+   "mislabeled_rule": 0.225,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R04",
+   "coverage": false,
+   "unknown": 0.775,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.225,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R05",
+   "coverage": false,
+   "unknown": 0.87,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.13,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R06",
+   "coverage": false,
+   "unknown": 0.345,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.655,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R07",
+   "coverage": false,
+   "unknown": 1.0,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R08",
+   "coverage": false,
+   "unknown": 0.865,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.135,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R09",
+   "coverage": false,
+   "unknown": 1.0,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R10",
+   "coverage": false,
+   "unknown": 1.0,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  },
+  {
+   "held_out": "R11",
+   "coverage": false,
+   "unknown": 1.0,
+   "mislabeled_rule": 0.0,
+   "mislabeled_correct": 0.0,
+   "ambiguous": 0.0,
+   "still_asking": 0.0
+  }
+ ],
+ "E4": {
+  "slip_rate": 0.15,
+  "tolerance": 1,
+  "opening_questions": 5,
+  "accuracy": 0.7863636363636364,
+  "students": 1100
+ },
+ "E5": {
+  "items": [
+   {
+    "mae": "MaE07",
+    "ex": 1,
+    "problem": "simplify 4/8",
+    "student": "2/8",
+    "explained_by": [],
+    "correct": "1/2"
+   },
+   {
+    "mae": "MaE07",
+    "ex": 2,
+    "problem": "simplify 6/8",
+    "student": "3/8",
+    "explained_by": [
+     "R11"
+    ],
+    "correct": "3/4"
+   },
+   {
+    "mae": "MaE07",
+    "ex": 3,
+    "problem": "simplify 4/6",
+    "student": "1/6",
+    "explained_by": [],
+    "correct": "2/3"
+   },
+   {
+    "mae": "MaE07",
+    "ex": 4,
+    "problem": "simplify 7/7",
+    "student": "1/7",
+    "explained_by": [
+     "R11"
+    ],
+    "correct": "1"
+   },
+   {
+    "mae": "MaE08",
+    "ex": 1,
+    "problem": "4/5 + 2/3",
+    "student": "6/8",
+    "explained_by": [
+     "R01"
+    ],
+    "correct": "1 7/15"
+   },
+   {
+    "mae": "MaE08",
+    "ex": 2,
+    "problem": "1/4 + 2/3",
+    "student": "3/7",
+    "explained_by": [
+     "R01"
+    ],
+    "correct": "11/12"
+   },
+   {
+    "mae": "MaE08",
+    "ex": 3,
+    "problem": "5/12 + 3/8",
+    "student": "8/20",
+    "explained_by": [
+     "R01"
+    ],
+    "correct": "19/24"
+   },
+   {
+    "mae": "MaE08",
+    "ex": 4,
+    "problem": "8 - 3/5",
+    "student": "5/3",
+    "explained_by": [],
+    "correct": "7 2/5"
+   },
+   {
+    "mae": "MaE09",
+    "ex": 1,
+    "problem": "1/2 + 1/4",
+    "student": "2/4",
+    "explained_by": [
+     "R02"
+    ],
+    "correct": "3/4"
+   },
+   {
+    "mae": "MaE09",
+    "ex": 2,
+    "problem": "2/5 + 1/2",
+    "student": "3/10",
+    "explained_by": [
+     "R02",
+     "R03"
+    ],
+    "correct": "9/10"
+   },
+   {
+    "mae": "MaE09",
+    "ex": 3,
+    "problem": "3/5 + 1/3",
+    "student": "4/15",
+    "explained_by": [
+     "R02",
+     "R03"
+    ],
+    "correct": "14/15"
+   },
+   {
+    "mae": "MaE09",
+    "ex": 4,
+    "problem": "3/4 + 1/2",
+    "student": "4/4",
+    "explained_by": [
+     "R02"
+    ],
+    "correct": "1 1/4"
+   },
+   {
+    "mae": "MaE10",
+    "ex": 1,
+    "problem": "7 - 1/3",
+    "student": "2",
+    "explained_by": [],
+    "correct": "6 2/3"
+   },
+   {
+    "mae": "MaE10",
+    "ex": 2,
+    "problem": "8 1/3 - 2/3",
+    "student": "4 1/2",
+    "explained_by": [],
+    "correct": "7 2/3"
+   },
+   {
+    "mae": "MaE10",
+    "ex": 3,
+    "problem": "6 - 1 1/4",
+    "student": "5 1/4",
+    "explained_by": [
+     "R04"
+    ],
+    "correct": "4 3/4"
+   },
+   {
+    "mae": "MaE10",
+    "ex": 4,
+    "problem": "1 - 1/3",
+    "student": "1 1/3",
+    "explained_by": [
+     "R04"
+    ],
+    "correct": "2/3"
+   },
+   {
+    "mae": "MaE11",
+    "ex": 1,
+    "problem": "6 2/3 - 3 1/6",
+    "student": "3 1/3",
+    "explained_by": [
+     "R05"
+    ],
+    "correct": "3 1/2"
+   },
+   {
+    "mae": "MaE11",
+    "ex": 2,
+    "problem": "4 5/8 - 1 3/4",
+    "student": "3 2/4",
+    "explained_by": [
+     "R05"
+    ],
+    "correct": "2 7/8"
+   },
+   {
+    "mae": "MaE11",
+    "ex": 3,
+    "problem": "5 3/8 - 2 2/3",
+    "student": "3 1/5",
+    "explained_by": [
+     "R05"
+    ],
+    "correct": "2 17/24"
+   },
+   {
+    "mae": "MaE11",
+    "ex": 4,
+    "problem": "7 2/5 - 4 7/10",
+    "student": "3 5/5",
+    "explained_by": [
+     "R05"
+    ],
+    "correct": "2 7/10"
+   },
+   {
+    "mae": "MaE13",
+    "ex": 1,
+    "problem": "2/3 \u00d7 3",
+    "student": "6/9",
+    "explained_by": [
+     "R06"
+    ],
+    "correct": "2"
+   },
+   {
+    "mae": "MaE13",
+    "ex": 2,
+    "problem": "1/4 \u00d7 6",
+    "student": "6/24",
+    "explained_by": [
+     "R06"
+    ],
+    "correct": "1 1/2"
+   },
+   {
+    "mae": "MaE13",
+    "ex": 3,
+    "problem": "4/5 \u00d7 2",
+    "student": "8/10",
+    "explained_by": [
+     "R06"
+    ],
+    "correct": "1 3/5"
+   },
+   {
+    "mae": "MaE13",
+    "ex": 4,
+    "problem": "3/8 \u00d7 4",
+    "student": "12/32",
+    "explained_by": [
+     "R06"
+    ],
+    "correct": "1 1/2"
+   },
+   {
+    "mae": "MaE14",
+    "ex": 1,
+    "problem": "4/6 \u00f7 2/2",
+    "student": "2/3",
+    "explained_by": [
+     "OK",
+     "R08"
+    ],
+    "correct": "2/3"
+   },
+   {
+    "mae": "MaE14",
+    "ex": 2,
+    "problem": "6/8 \u00f7 2/8",
+    "student": "3/1",
+    "explained_by": [
+     "OK",
+     "R08"
+    ],
+    "correct": "3"
+   },
+   {
+    "mae": "MaE14",
+    "ex": 3,
+    "problem": "6/10 \u00f7 2/4",
+    "student": "3/2",
+    "explained_by": [
+     "R08"
+    ],
+    "correct": "1 1/5"
+   },
+   {
+    "mae": "MaE14",
+    "ex": 4,
+    "problem": "7/5 \u00f7 3/2",
+    "student": "2/2",
+    "explained_by": [
+     "R08"
+    ],
+    "correct": "14/15"
+   },
+   {
+    "mae": "MaE15",
+    "ex": 1,
+    "problem": "2/3 \u00f7 3/8",
+    "student": "9/16",
+    "explained_by": [
+     "R09"
+    ],
+    "correct": "1 7/9"
+   },
+   {
+    "mae": "MaE15",
+    "ex": 2,
+    "problem": "2/5 \u00f7 1/3",
+    "student": "5/6",
+    "explained_by": [
+     "R09"
+    ],
+    "correct": "1 1/5"
+   },
+   {
+    "mae": "MaE15",
+    "ex": 3,
+    "problem": "3/4 \u00f7 1/5",
+    "student": "4/15",
+    "explained_by": [
+     "R09"
+    ],
+    "correct": "3 3/4"
+   },
+   {
+    "mae": "MaE15",
+    "ex": 4,
+    "problem": "5/8 \u00f7 2/3",
+    "student": "16/15",
+    "explained_by": [
+     "R09"
+    ],
+    "correct": "15/16"
+   }
+  ],
+  "covered": 27,
+  "total": 32,
+  "loo": [
+   {
+    "mae": "MaE07",
+    "held_out_ex": 1,
+    "status": "unknown",
+    "survivors": [],
+    "predicted": null,
+    "actual": "2/8",
+    "correct_prediction": false
+   },
+   {
+    "mae": "MaE07",
+    "held_out_ex": 2,
+    "status": "unknown",
+    "survivors": [],
+    "predicted": null,
+    "actual": "3/8",
+    "correct_prediction": false
+   },
+   {
+    "mae": "MaE07",
+    "held_out_ex": 3,
+    "status": "unknown",
+    "survivors": [],
+    "predicted": null,
+    "actual": "1/6",
+    "correct_prediction": false
+   },
+   {
+    "mae": "MaE07",
+    "held_out_ex": 4,
+    "status": "unknown",
+    "survivors": [],
+    "predicted": null,
+    "actual": "1/7",
+    "correct_prediction": false
+   },
+   {
+    "mae": "MaE08",
+    "held_out_ex": 1,
+    "status": "unknown",
+    "survivors": [],
+    "predicted": null,
+    "actual": "6/8",
+    "correct_prediction": false
+   },
+   {
+    "mae": "MaE08",
+    "held_out_ex": 2,
+    "status": "unknown",
+    "survivors": [],
+    "predicted": null,
+    "actual": "3/7",
+    "correct_prediction": false
+   },
+   {
+    "mae": "MaE08",
+    "held_out_ex": 3,
+    "status": "unknown",
+    "survivors": [],
+    "predicted": null,
+    "actual": "8/20",
+    "correct_prediction": false
+   },
+   {
+    "mae": "MaE08",
+    "held_out_ex": 4,
+    "status": "confirmed",
+    "survivors": [
+     "R01"
+    ],
+    "predicted": "7 2/5",
+    "actual": "5/3",
+    "correct_prediction": false
+   },
+   {
+    "mae": "MaE09",
+    "held_out_ex": 1,
+    "status": "confirmed",
+    "survivors": [
+     "R02"
+    ],
+    "predicted": "1/2",
+    "actual": "2/4",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE09",
+    "held_out_ex": 2,
+    "status": "confirmed",
+    "survivors": [
+     "R02"
+    ],
+    "predicted": "3/10",
+    "actual": "3/10",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE09",
+    "held_out_ex": 3,
+    "status": "confirmed",
+    "survivors": [
+     "R02"
+    ],
+    "predicted": "4/15",
+    "actual": "4/15",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE09",
+    "held_out_ex": 4,
+    "status": "confirmed",
+    "survivors": [
+     "R02"
+    ],
+    "predicted": "1",
+    "actual": "4/4",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE10",
+    "held_out_ex": 1,
+    "status": "unknown",
+    "survivors": [],
+    "predicted": null,
+    "actual": "2",
+    "correct_prediction": false
+   },
+   {
+    "mae": "MaE10",
+    "held_out_ex": 2,
+    "status": "unknown",
+    "survivors": [],
+    "predicted": null,
+    "actual": "4 1/2",
+    "correct_prediction": false
+   },
+   {
+    "mae": "MaE10",
+    "held_out_ex": 3,
+    "status": "unknown",
+    "survivors": [],
+    "predicted": null,
+    "actual": "5 1/4",
+    "correct_prediction": false
+   },
+   {
+    "mae": "MaE10",
+    "held_out_ex": 4,
+    "status": "unknown",
+    "survivors": [],
+    "predicted": null,
+    "actual": "1 1/3",
+    "correct_prediction": false
+   },
+   {
+    "mae": "MaE11",
+    "held_out_ex": 1,
+    "status": "confirmed",
+    "survivors": [
+     "R05"
+    ],
+    "predicted": "3 1/3",
+    "actual": "3 1/3",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE11",
+    "held_out_ex": 2,
+    "status": "confirmed",
+    "survivors": [
+     "R05"
+    ],
+    "predicted": "3 1/2",
+    "actual": "3 2/4",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE11",
+    "held_out_ex": 3,
+    "status": "confirmed",
+    "survivors": [
+     "R05"
+    ],
+    "predicted": "3 1/5",
+    "actual": "3 1/5",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE11",
+    "held_out_ex": 4,
+    "status": "confirmed",
+    "survivors": [
+     "R05"
+    ],
+    "predicted": "4",
+    "actual": "3 5/5",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE13",
+    "held_out_ex": 1,
+    "status": "confirmed",
+    "survivors": [
+     "R06"
+    ],
+    "predicted": "2/3",
+    "actual": "6/9",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE13",
+    "held_out_ex": 2,
+    "status": "confirmed",
+    "survivors": [
+     "R06"
+    ],
+    "predicted": "1/4",
+    "actual": "6/24",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE13",
+    "held_out_ex": 3,
+    "status": "confirmed",
+    "survivors": [
+     "R06"
+    ],
+    "predicted": "4/5",
+    "actual": "8/10",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE13",
+    "held_out_ex": 4,
+    "status": "confirmed",
+    "survivors": [
+     "R06"
+    ],
+    "predicted": "3/8",
+    "actual": "12/32",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE14",
+    "held_out_ex": 1,
+    "status": "confirmed",
+    "survivors": [
+     "R08"
+    ],
+    "predicted": "2/3",
+    "actual": "2/3",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE14",
+    "held_out_ex": 2,
+    "status": "confirmed",
+    "survivors": [
+     "R08"
+    ],
+    "predicted": "3",
+    "actual": "3/1",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE14",
+    "held_out_ex": 3,
+    "status": "confirmed",
+    "survivors": [
+     "R08"
+    ],
+    "predicted": "1 1/2",
+    "actual": "3/2",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE14",
+    "held_out_ex": 4,
+    "status": "confirmed",
+    "survivors": [
+     "R08"
+    ],
+    "predicted": "1",
+    "actual": "2/2",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE15",
+    "held_out_ex": 1,
+    "status": "confirmed",
+    "survivors": [
+     "R09"
+    ],
+    "predicted": "9/16",
+    "actual": "9/16",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE15",
+    "held_out_ex": 2,
+    "status": "confirmed",
+    "survivors": [
+     "R09"
+    ],
+    "predicted": "5/6",
+    "actual": "5/6",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE15",
+    "held_out_ex": 3,
+    "status": "confirmed",
+    "survivors": [
+     "R09"
+    ],
+    "predicted": "4/15",
+    "actual": "4/15",
+    "correct_prediction": true
+   },
+   {
+    "mae": "MaE15",
+    "held_out_ex": 4,
+    "status": "confirmed",
+    "survivors": [
+     "R09"
+    ],
+    "predicted": "1 1/15",
+    "actual": "16/15",
+    "correct_prediction": true
+   }
+  ]
+ }
+}
