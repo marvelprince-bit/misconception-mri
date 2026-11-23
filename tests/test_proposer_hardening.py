@@ -124,3 +124,38 @@ class RawLog(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ClaudeRequest(unittest.TestCase):
+    """The request must suit Claude Sonnet 5.5: no sampling parameters, room for thinking."""
+
+    def _call(self, reply_json):
+        import io
+        from unittest import mock
+        from mri.proposer import ClaudeProposer
+        sent = {}
+
+        def fake_urlopen(request, timeout=None):
+            sent["body"] = json.loads(request.data.decode())
+            sent["headers"] = dict(request.header_items())
+            return io.BytesIO(json.dumps(reply_json).encode())
+
+        with mock.patch("urllib.request.urlopen", fake_urlopen):
+            out = ClaudeProposer(api_key="test-key")("hello")
+        return out, sent
+
+    def test_no_sampling_parameters_and_enough_tokens(self):
+        out, sent = self._call({"content": [{"type": "thinking", "thinking": "..."},
+                                            {"type": "text", "text": "DESCRIPTION: x"}],
+                                "stop_reason": "end_turn"})
+        self.assertEqual(out, "DESCRIPTION: x")
+        for k in ("temperature", "top_p", "top_k"):
+            self.assertNotIn(k, sent["body"])
+        self.assertGreaterEqual(sent["body"]["max_tokens"], 4000)
+        self.assertEqual(sent["body"]["model"], "claude-sonnet-5-5")
+
+    def test_reply_with_only_thinking_is_reported_clearly(self):
+        from mri.proposer import ProposerUnavailable
+        with self.assertRaises(ProposerUnavailable) as ctx:
+            self._call({"content": [{"type": "thinking", "thinking": "..."}], "stop_reason": "max_tokens"})
+        self.assertIn("max_tokens", str(ctx.exception))

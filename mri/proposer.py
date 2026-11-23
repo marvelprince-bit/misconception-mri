@@ -196,16 +196,20 @@ class ClaudeProposer:
 
     URL = "https://api.anthropic.com/v1/messages"
 
-    def __init__(self, api_key: str | None = None, model: str | None = None, timeout: float = 60.0):
+    def __init__(self, api_key: str | None = None, model: str | None = None, timeout: float = 120.0):
         self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY", "")
         self.model = model or os.environ.get("MRI_CLAUDE_MODEL", "claude-sonnet-5-5")
         self.timeout = timeout
+        self.max_tokens = int(os.environ.get("MRI_CLAUDE_MAX_TOKENS", "8000"))
 
     def __call__(self, prompt: str) -> str:
         if not self.api_key:
             raise ProposerUnavailable("No ANTHROPIC_API_KEY is set.")
+        # No temperature/top_p/top_k: Claude Sonnet 5.5 rejects non-default sampling values.
+        # Thinking runs by default on Sonnet 5.5 and shares max_tokens with the reply, so the
+        # limit is generous; only the text blocks (the reply itself) are kept below.
         body = json.dumps({
-            "model": self.model, "max_tokens": 1200, "temperature": 0.2,
+            "model": self.model, "max_tokens": self.max_tokens,
             "messages": [{"role": "user", "content": prompt}],
         }).encode()
         request = urllib.request.Request(
@@ -216,13 +220,18 @@ class ClaudeProposer:
         try:
             with urllib.request.urlopen(request, timeout=self.timeout) as response:
                 data = json.loads(response.read().decode())
-            return "".join(part.get("text", "") for part in data["content"] if part.get("type") == "text")
+            text = "".join(part.get("text", "") for part in data["content"] if part.get("type") == "text")
         except urllib.error.HTTPError as exc:
             raise ProposerUnavailable(f"The AI service returned HTTP {exc.code}.") from None
         except (urllib.error.URLError, TimeoutError, OSError) as exc:
             raise ProposerUnavailable(f"The AI service could not be reached ({type(exc).__name__}).") from None
         except (KeyError, IndexError, TypeError, ValueError):
             raise ProposerUnavailable("The AI service returned an empty or unreadable reply.") from None
+        if not text.strip():
+            stop = data.get("stop_reason", "unknown")
+            raise ProposerUnavailable(f"The AI service returned no text (stop reason: {stop}). "
+                                      "If it is max_tokens, raise MRI_CLAUDE_MAX_TOKENS.")
+        return text
 
 
 def make_proposer(name: str):
