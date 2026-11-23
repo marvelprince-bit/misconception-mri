@@ -1,209 +1,314 @@
-"""The rule bank: executable versions of known fraction misconceptions.
+"""The rule library: the correct procedure plus common wrong procedures, as code.
 
-Each wrong rule is a small function that answers a problem the way a student
-holding that misconception would. It returns None when the rule does not
-apply to the problem; the student is then assumed to answer correctly.
+Each rule is a small function that answers EVERY problem in its domain, so it can
+predict what a student who follows that rule would write for a brand-new question.
 
-Sources: rules tagged with a MaE id are written from the misconception
-descriptions in the MaE dataset (Otero, Druga and Lan, MIT license), which
-cite Ashlock (2006). Rules tagged "project" are additional competing
-hypotheses written for this project so the diagnosis has realistic rivals.
-No code or data from MalruleLib is used here.
+These wrong rules were written for this project. The idea of writing wrong rules
+as executable code comes from the malrule literature (see README, Prior work).
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 from fractions import Fraction
-from math import gcd
-from typing import Callable, Dict, List, Optional, Tuple
+from functools import lru_cache
+from math import lcm
+from typing import Callable
 
-from .core import Answer, Operand, Problem, correct_answer, lcm
+from .problems import Problem
 
 
 @dataclass(frozen=True)
 class Rule:
     id: str
-    name: str
-    source: str  # "MaE08" or "project"
-    ops: Tuple[str, ...]
-    student_view: str  # plain description shown to a student
-    teacher_note: str  # what to reteach
-    fn: Callable[[Problem], Optional[Answer]]
+    domain: str
+    label: str  # shown to the tutor
+    fn: Callable[..., Fraction | int | None]
+    is_correct: bool = False
+    source: str = "library"  # "library" or "ai"
+    code: str = ""  # source text, kept for AI-written rules
+
+    def predict(self, problem: Problem) -> Fraction | None:
+        """The answer this rule gives, or None if the rule breaks on this problem."""
+        return _predict(self, problem)
 
 
-def _simple(o: Operand) -> bool:
-    return o.w == 0 and o.n != 0
-
-
-def _mixed_parts(o: Operand) -> Tuple[int, int, int]:
-    """Whole, numerator, denominator; a whole number has fraction part 0/1."""
-    return o.w, o.n, o.d
-
-
-# ---- addition and subtraction ------------------------------------------------
-
-def add_across(p: Problem) -> Optional[Answer]:
-    """Add (or subtract) tops and bottoms: a/b + c/d = (a+c)/(b+d)."""
-    if p.op not in ("+", "-") or not (_simple(p.x) and _simple(p.y)):
+@lru_cache(maxsize=None)
+def _predict(rule: Rule, problem: Problem) -> Fraction | None:
+    try:
+        out = rule.fn(*problem.args)
+    except (ZeroDivisionError, ArithmeticError, TypeError, ValueError):
         return None
-    a, b, c, d = p.x.n, p.x.d, p.y.n, p.y.d
-    num = a + c if p.op == "+" else a - c
-    den = b + d if p.op == "+" else b - d
-    return None if den == 0 else Fraction(num, den)
-
-
-def lcd_keep_numerators(p: Problem) -> Optional[Answer]:
-    """Finds the common denominator but copies the original numerators."""
-    if p.op not in ("+", "-") or not (_simple(p.x) and _simple(p.y)):
+    if out is None or isinstance(out, bool):
         return None
-    L = lcm(p.x.d, p.y.d)
-    num = p.x.n + p.y.n if p.op == "+" else p.x.n - p.y.n
-    return Fraction(num, L)
-
-
-def add_nums_multiply_denoms(p: Problem) -> Optional[Answer]:
-    """Adds the numerators but multiplies the denominators."""
-    if p.op != "+" or not (_simple(p.x) and _simple(p.y)):
+    try:
+        return Fraction(out)
+    except (TypeError, ValueError):
         return None
-    return Fraction(p.x.n + p.y.n, p.x.d * p.y.d)
 
 
-def smaller_from_larger(p: Problem) -> Optional[Answer]:
-    """Subtracts without regrouping: wholes from wholes, then the smaller
-    fraction part from the larger one, whatever order they are written in."""
-    if p.op != "-":
-        return None
-    w1, n1, d1 = _mixed_parts(p.x)
-    w2, n2, d2 = _mixed_parts(p.y)
-    L = lcm(d1, d2)
-    f1, f2 = n1 * (L // d1), n2 * (L // d2)
-    return (w1 - w2) + Fraction(abs(f1 - f2), L)
+# ----------------------------------------------------------------- integers
+def _true_int(a, op, b):
+    return a + b if op == "+" else a - b
 
 
-def mixed_parts_separately(p: Problem) -> Optional[Answer]:
-    """Mixed subtraction done part by part: wholes, then numerators, then
-    denominators, each time taking the smaller from the larger."""
-    if p.op != "-" or p.x.w == 0 or p.y.w == 0 or p.x.n == 0 or p.y.n == 0:
-        return None
-    dd = abs(p.x.d - p.y.d)
-    if dd == 0:
-        return None
-    return (p.x.w - p.y.w) + Fraction(abs(p.x.n - p.y.n), dd)
+def _sign(x):
+    return -1 if x < 0 else 1
 
 
-# ---- multiplication -----------------------------------------------------------
-
-def whole_times_both(p: Problem) -> Optional[Answer]:
-    """Multiplies a fraction by a whole number by scaling top and bottom."""
-    if p.op != "*":
-        return None
-    fr, wh = (p.x, p.y) if p.y.is_whole and _simple(p.x) else (p.y, p.x)
-    if not (wh.is_whole and _simple(fr)):
-        return None
-    k = wh.w
-    if k == 0:
-        return None
-    return Fraction(fr.n * k, fr.d * k)
+def _ignore_signs_subtract(a, op, b):
+    if op == "-":
+        return abs(abs(a) - abs(b))
+    return a + b
 
 
-def multiply_cross(p: Problem) -> Optional[Answer]:
-    """Cross-multiplies as if dividing: a/b × c/d = (a·d)/(b·c)."""
-    if p.op != "*" or not (_simple(p.x) and _simple(p.y)):
-        return None
-    return Fraction(p.x.n * p.y.d, p.x.d * p.y.n)
+def _minus_negative_is_minus(a, op, b):
+    if op == "-" and b < 0:
+        return a - abs(b)
+    return _true_int(a, op, b)
 
 
-# ---- division -----------------------------------------------------------------
-
-def divide_across_drop_remainder(p: Problem) -> Optional[Answer]:
-    """Divides tops by tops and bottoms by bottoms, dropping remainders."""
-    if p.op != "/" or not (_simple(p.x) and _simple(p.y)):
-        return None
-    num, den = p.x.n // p.y.n, p.x.d // p.y.d
-    return None if den == 0 else Fraction(num, den)
+def _plus_negative_is_plus(a, op, b):
+    if op == "+" and b < 0:
+        return a + abs(b)
+    return _true_int(a, op, b)
 
 
-def invert_dividend(p: Problem) -> Optional[Answer]:
-    """Flips the first fraction instead of the second, then multiplies."""
-    if p.op != "/" or not (_simple(p.x) and _simple(p.y)):
-        return None
-    return Fraction(p.x.d, p.x.n) * Fraction(p.y.n, p.y.d)
+def _two_negatives_make_positive(a, op, b):
+    if op == "+" and a < 0 and b < 0:
+        return abs(a) + abs(b)
+    return _true_int(a, op, b)
 
 
-def invert_both(p: Problem) -> Optional[Answer]:
-    """Flips both fractions, then multiplies."""
-    if p.op != "/" or not (_simple(p.x) and _simple(p.y)):
-        return None
-    return Fraction(p.x.d, p.x.n) * Fraction(p.y.d, p.y.n)
+def _always_positive(a, op, b):
+    return abs(_true_int(a, op, b))
 
 
-# ---- simplifying --------------------------------------------------------------
-
-def simplify_top_only(p: Problem) -> Optional[Answer]:
-    """Divides only the numerator by the common factor."""
-    if p.op != "simplify" or not _simple(p.x):
-        return None
-    g = gcd(p.x.n, p.x.d)
-    if g == 1:
-        return None
-    return (p.x.n // g, p.x.d)
+def _sign_of_first(a, op, b):
+    return _sign(a) * abs(_true_int(a, op, b))
 
 
-RULES: List[Rule] = [
-    Rule("R01", "Adds tops and bottoms", "MaE08", ("+", "-"),
-         "You added the tops together and the bottoms together.",
-         "Fractions are added in equal-sized pieces: rename to a common denominator, then add only the numerators.",
-         add_across),
-    Rule("R02", "Common denominator, numerators copied", "MaE09", ("+", "-"),
-         "You found the common bottom number but kept the old top numbers.",
-         "When the denominator is multiplied to make the common denominator, the numerator must be multiplied by the same number.",
-         lcd_keep_numerators),
-    Rule("R03", "Adds tops, multiplies bottoms", "project", ("+",),
-         "You added the tops but multiplied the bottoms.",
-         "Mixing the addition and multiplication procedures; contrast the two with area models.",
-         add_nums_multiply_denoms),
-    Rule("R04", "Smaller from larger, no regrouping", "MaE10", ("-",),
-         "You took the smaller fraction from the larger one instead of borrowing a whole.",
-         "When the fraction being taken away is larger, regroup one whole into fraction pieces first.",
-         smaller_from_larger),
-    Rule("R05", "Mixed numbers part by part", "MaE11", ("-",),
-         "You subtracted wholes, tops and bottoms separately.",
-         "Rename to a common denominator before subtracting; denominators are never subtracted.",
-         mixed_parts_separately),
-    Rule("R06", "Whole number scales top and bottom", "MaE13", ("*",),
-         "You multiplied both the top and the bottom by the whole number.",
-         "Multiplying by n means n groups of the fraction: only the numerator is multiplied.",
-         whole_times_both),
-    Rule("R07", "Cross-multiplies when multiplying", "project", ("*",),
-         "You cross-multiplied, which is a step people use for dividing.",
-         "Multiplication is straight across: tops times tops, bottoms times bottoms.",
-         multiply_cross),
-    Rule("R08", "Divides across, drops remainders", "MaE14", ("/",),
-         "You divided top by top and bottom by bottom and ignored what was left over.",
-         "Dividing across only works when both divisions are exact; teach multiply by the reciprocal.",
-         divide_across_drop_remainder),
-    Rule("R09", "Flips the first fraction", "MaE15", ("/",),
-         "You flipped the first fraction instead of the second.",
-         "Keep the first fraction, flip the divisor: ask how many of the second fit into the first.",
-         invert_dividend),
-    Rule("R10", "Flips both fractions", "project", ("/",),
-         "You flipped both fractions before multiplying.",
-         "Only the divisor is flipped; check with a simple case like 1 ÷ 1/2 = 2.",
-         invert_both),
-    Rule("R11", "Simplifies the top only", "MaE07", ("simplify",),
-         "You divided the top by the common factor but left the bottom unchanged.",
-         "Simplifying divides top and bottom by the same factor so the value stays the same.",
-         simplify_top_only),
+def _leading_minus_covers_all(a, op, b):
+    if a < 0:
+        return -_true_int(abs(a), op, b)
+    return _true_int(a, op, b)
+
+
+INTEGER_RULES = [
+    Rule("int_correct", "integers", "Works correctly with negative numbers.", _true_int, is_correct=True),
+    Rule("int_ignore_signs_subtract", "integers",
+         "When subtracting, ignores the signs and takes the smaller size from the larger size "
+         "(so 3 - 5 becomes 2).", _ignore_signs_subtract),
+    Rule("int_minus_negative_is_minus", "integers",
+         "Treats 'minus a negative' as plain minus (so 4 - (-3) becomes 1).", _minus_negative_is_minus),
+    Rule("int_plus_negative_is_plus", "integers",
+         "Treats 'plus a negative' as plain plus (so 4 + (-3) becomes 7).", _plus_negative_is_plus),
+    Rule("int_two_negatives_make_positive", "integers",
+         "Believes two negatives added together make a positive (so -3 + (-5) becomes 8).",
+         _two_negatives_make_positive),
+    Rule("int_always_positive", "integers",
+         "Works out the right size but drops the negative sign from the answer (so 3 - 5 becomes 2).",
+         _always_positive),
+    Rule("int_sign_of_first", "integers",
+         "Works out the right size but gives the answer the sign of the first number "
+         "(so -3 + 5 becomes -2).", _sign_of_first),
+    Rule("int_leading_minus_covers_all", "integers",
+         "Reads a leading minus as covering the whole sum (so -3 + 5 becomes -(3 + 5) = -8).",
+         _leading_minus_covers_all),
 ]
 
-RULES_BY_ID: Dict[str, Rule] = {r.id: r for r in RULES}
 
-CORRECT_ID = "OK"
+# ---------------------------------------------------------------- fractions
+def _true_frac(n1, d1, n2, d2):
+    return Fraction(n1, d1) + Fraction(n2, d2)
 
 
-def student_answer(rule_id: str, p: Problem, rules: Dict[str, Rule] = RULES_BY_ID) -> Optional[Answer]:
-    """Answer a problem as a student with this rule would. 'OK' means correct."""
-    if rule_id == CORRECT_ID:
-        return correct_answer(p)
-    out = rules[rule_id].fn(p)
-    return correct_answer(p) if out is None else out
+FRACTION_RULES = [
+    Rule("frac_correct", "fractions", "Adds fractions correctly.", _true_frac, is_correct=True),
+    Rule("frac_add_tops_add_bottoms", "fractions",
+         "Adds the tops and adds the bottoms (so 1/2 + 1/3 becomes 2/5).",
+         lambda n1, d1, n2, d2: Fraction(n1 + n2, d1 + d2)),
+    Rule("frac_add_tops_keep_larger_bottom", "fractions",
+         "Adds the tops and keeps the larger bottom (so 1/2 + 1/3 becomes 2/3).",
+         lambda n1, d1, n2, d2: Fraction(n1 + n2, max(d1, d2))),
+    Rule("frac_add_tops_multiply_bottoms", "fractions",
+         "Adds the tops and multiplies the bottoms (so 1/2 + 1/3 becomes 2/6).",
+         lambda n1, d1, n2, d2: Fraction(n1 + n2, d1 * d2)),
+    Rule("frac_common_bottom_no_scaling", "fractions",
+         "Finds the common bottom but forgets to scale the tops (so 1/2 + 1/3 becomes 2/6, "
+         "and 1/4 + 1/6 becomes 2/12).",
+         lambda n1, d1, n2, d2: Fraction(n1 + n2, lcm(d1, d2))),
+    Rule("frac_multiplies_instead", "fractions",
+         "Multiplies tops and bottoms instead of adding (so 1/2 + 1/3 becomes 1/6).",
+         lambda n1, d1, n2, d2: Fraction(n1 * n2, d1 * d2)),
+    Rule("frac_add_tops_keep_first_bottom", "fractions",
+         "Adds the tops and keeps the first bottom (so 1/2 + 1/3 becomes 2/2).",
+         lambda n1, d1, n2, d2: Fraction(n1 + n2, d1)),
+]
+
+# ------------------------------------------- subtracting fractions and mixed numbers
+# Rules written from MaE misconception descriptions (Otero, Druga and Lan, MIT licence),
+# which draw on Ashlock (2006). The MaE id is given in each label's source note.
+
+def _v(w, n, d):
+    return w + Fraction(n, d)
+
+
+def _true_sub(w1, n1, d1, w2, n2, d2):
+    return _v(w1, n1, d1) - _v(w2, n2, d2)
+
+
+def _sub_tops_and_bottoms(w1, n1, d1, w2, n2, d2):
+    """MaE08: subtracts tops and subtracts bottoms (only possible for two plain fractions)."""
+    if w1 == 0 and w2 == 0 and d1 != d2:
+        return Fraction(n1 - n2, d1 - d2)
+    return _true_sub(w1, n1, d1, w2, n2, d2)
+
+
+def _sub_common_bottom_no_scaling(w1, n1, d1, w2, n2, d2):
+    """MaE09: finds the common bottom but keeps the old tops."""
+    if w1 == 0 and w2 == 0:
+        return Fraction(n1 - n2, lcm(d1, d2))
+    return _true_sub(w1, n1, d1, w2, n2, d2)
+
+
+def _sub_smaller_from_larger(w1, n1, d1, w2, n2, d2):
+    """MaE10: never regroups; takes the smaller fraction part from the larger."""
+    L = lcm(d1, d2)
+    return (w1 - w2) + Fraction(abs(n1 * (L // d1) - n2 * (L // d2)), L)
+
+
+def _sub_parts_separately(w1, n1, d1, w2, n2, d2):
+    """MaE11: wholes, tops and bottoms each subtracted, smaller from larger."""
+    if w1 > 0 and w2 > 0 and n1 > 0 and n2 > 0 and d1 != d2:
+        return (w1 - w2) + Fraction(abs(n1 - n2), abs(d1 - d2))
+    return _true_sub(w1, n1, d1, w2, n2, d2)
+
+
+SUB_RULES = [
+    Rule("sub_correct", "frac_sub", "Subtracts fractions and mixed numbers correctly.", _true_sub, is_correct=True),
+    Rule("sub_tops_and_bottoms", "frac_sub",
+         "Subtracts the tops and subtracts the bottoms (so 3/4 − 1/2 becomes 2/2). Source: MaE08.",
+         _sub_tops_and_bottoms),
+    Rule("sub_common_bottom_no_scaling", "frac_sub",
+         "Finds the common bottom but keeps the old tops (so 3/4 − 1/2 becomes 2/4). Source: MaE09.",
+         _sub_common_bottom_no_scaling),
+    Rule("sub_smaller_from_larger", "frac_sub",
+         "Never regroups: takes the smaller fraction from the larger, whatever the order "
+         "(so 6 − 1 1/4 becomes 5 1/4). Source: MaE10.", _sub_smaller_from_larger),
+    Rule("sub_parts_separately", "frac_sub",
+         "Subtracts wholes, tops and bottoms separately (so 6 2/3 − 3 1/6 becomes 3 1/3). Source: MaE11.",
+         _sub_parts_separately),
+]
+
+
+# ------------------------------------------------------------ multiplying fractions
+def _true_mul(w1, n1, d1, w2, n2, d2):
+    return _v(w1, n1, d1) * _v(w2, n2, d2)
+
+
+def _whole_and_frac(w1, n1, d1, w2, n2, d2):
+    """(k, n, d) if one side is a whole number k and the other a plain fraction n/d."""
+    if n1 == 0 and w2 == 0:
+        return w1, n2, d2
+    if n2 == 0 and w1 == 0:
+        return w2, n1, d1
+    return None
+
+
+def _mul_whole_scales_both(*a):
+    """MaE13: multiplies top and bottom by the whole number."""
+    wf = _whole_and_frac(*a)
+    if wf:
+        k, n, d = wf
+        return Fraction(n * k, d * k)
+    return _true_mul(*a)
+
+
+def _mul_whole_times_bottom(*a):
+    """Project rule: multiplies the bottom by the whole number instead of the top."""
+    wf = _whole_and_frac(*a)
+    if wf:
+        k, n, d = wf
+        return Fraction(n, d * k)
+    return _true_mul(*a)
+
+
+def _mul_cross(w1, n1, d1, w2, n2, d2):
+    """Project rule: cross-multiplies as if dividing."""
+    if w1 == 0 and w2 == 0:
+        return Fraction(n1 * d2, d1 * n2)
+    return _true_mul(w1, n1, d1, w2, n2, d2)
+
+
+MUL_RULES = [
+    Rule("mul_correct", "frac_mul", "Multiplies fractions correctly.", _true_mul, is_correct=True),
+    Rule("mul_whole_scales_both", "frac_mul",
+         "Multiplies both the top and the bottom by the whole number (so 2/3 × 3 becomes 6/9). Source: MaE13.",
+         _mul_whole_scales_both),
+    Rule("mul_whole_times_bottom", "frac_mul",
+         "Multiplies the bottom by the whole number instead of the top (so 2/3 × 3 becomes 2/9).",
+         _mul_whole_times_bottom),
+    Rule("mul_cross", "frac_mul",
+         "Cross-multiplies as if dividing (so 2/3 × 3/4 becomes 8/9).", _mul_cross),
+]
+
+
+# --------------------------------------------------------------- dividing fractions
+def _true_div(n1, d1, n2, d2):
+    return Fraction(n1, d1) / Fraction(n2, d2)
+
+
+def _div_across_drop_remainder(n1, d1, n2, d2):
+    """MaE14: divides top by top and bottom by bottom, ignoring remainders."""
+    if n1 >= n2 and d1 >= d2:
+        return Fraction(n1 // n2, d1 // d2)
+    return _true_div(n1, d1, n2, d2)
+
+
+def _div_flip_first(n1, d1, n2, d2):
+    """MaE15: flips the first fraction instead of the second."""
+    return Fraction(d1, n1) * Fraction(n2, d2)
+
+
+def _div_flip_both(n1, d1, n2, d2):
+    """Project rule: flips both fractions."""
+    return Fraction(d1, n1) * Fraction(d2, n2)
+
+
+def _div_multiplies_instead(n1, d1, n2, d2):
+    """Project rule: multiplies straight across instead of dividing."""
+    return Fraction(n1 * n2, d1 * d2)
+
+
+DIV_RULES = [
+    Rule("div_correct", "frac_div", "Divides fractions correctly.", _true_div, is_correct=True),
+    Rule("div_across_drop_remainder", "frac_div",
+         "Divides top by top and bottom by bottom, ignoring remainders "
+         "(so 7/5 ÷ 3/2 becomes 2/2). Source: MaE14.", _div_across_drop_remainder),
+    Rule("div_flip_first", "frac_div",
+         "Flips the first fraction instead of the second (so 2/3 ÷ 3/8 becomes 9/16). Source: MaE15.",
+         _div_flip_first),
+    Rule("div_flip_both", "frac_div",
+         "Flips both fractions before multiplying (so 2/3 ÷ 3/8 becomes 4/3).", _div_flip_both),
+    Rule("div_multiplies_instead", "frac_div",
+         "Multiplies straight across instead of dividing (so 2/3 ÷ 3/8 becomes 1/4).", _div_multiplies_instead),
+]
+
+LIBRARY = {"integers": INTEGER_RULES, "fractions": FRACTION_RULES, "frac_sub": SUB_RULES,
+           "frac_mul": MUL_RULES, "frac_div": DIV_RULES}
+
+
+def library(domain: str) -> list[Rule]:
+    return list(LIBRARY[domain])
+
+
+def correct_rule(domain: str) -> Rule:
+    return next(r for r in LIBRARY[domain] if r.is_correct)
+
+
+def get_rule(rule_id: str) -> Rule:
+    for rules in LIBRARY.values():
+        for r in rules:
+            if r.id == rule_id:
+                return r
+    raise KeyError(rule_id)

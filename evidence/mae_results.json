@@ -1,0 +1,755 @@
+{
+ "rows": [
+  {
+   "mae": "MaE07",
+   "ex": 1,
+   "problem": "simplify 4/8",
+   "student": "2/8",
+   "topic": "out of scope",
+   "correct": "",
+   "explained_by": []
+  },
+  {
+   "mae": "MaE07",
+   "ex": 2,
+   "problem": "simplify 6/8",
+   "student": "3/8",
+   "topic": "out of scope",
+   "correct": "",
+   "explained_by": []
+  },
+  {
+   "mae": "MaE07",
+   "ex": 3,
+   "problem": "simplify 4/6",
+   "student": "1/6",
+   "topic": "out of scope",
+   "correct": "",
+   "explained_by": []
+  },
+  {
+   "mae": "MaE07",
+   "ex": 4,
+   "problem": "simplify 7/7",
+   "student": "1/7",
+   "topic": "out of scope",
+   "correct": "",
+   "explained_by": []
+  },
+  {
+   "mae": "MaE08",
+   "ex": 1,
+   "problem": "4/5 + 2/3",
+   "student": "6/8",
+   "topic": "fractions",
+   "correct": "1 7/15",
+   "explained_by": [
+    "frac_add_tops_add_bottoms"
+   ]
+  },
+  {
+   "mae": "MaE08",
+   "ex": 2,
+   "problem": "1/4 + 2/3",
+   "student": "3/7",
+   "topic": "fractions",
+   "correct": "11/12",
+   "explained_by": [
+    "frac_add_tops_add_bottoms"
+   ]
+  },
+  {
+   "mae": "MaE08",
+   "ex": 3,
+   "problem": "5/12 + 3/8",
+   "student": "8/20",
+   "topic": "fractions",
+   "correct": "19/24",
+   "explained_by": [
+    "frac_add_tops_add_bottoms"
+   ]
+  },
+  {
+   "mae": "MaE08",
+   "ex": 4,
+   "problem": "8 - 3/5",
+   "student": "5/3",
+   "topic": "frac_sub",
+   "correct": "7 2/5",
+   "explained_by": []
+  },
+  {
+   "mae": "MaE09",
+   "ex": 1,
+   "problem": "1/2 + 1/4",
+   "student": "2/4",
+   "topic": "fractions",
+   "correct": "3/4",
+   "explained_by": [
+    "frac_add_tops_keep_larger_bottom",
+    "frac_common_bottom_no_scaling"
+   ]
+  },
+  {
+   "mae": "MaE09",
+   "ex": 2,
+   "problem": "2/5 + 1/2",
+   "student": "3/10",
+   "topic": "fractions",
+   "correct": "9/10",
+   "explained_by": [
+    "frac_add_tops_multiply_bottoms",
+    "frac_common_bottom_no_scaling"
+   ]
+  },
+  {
+   "mae": "MaE09",
+   "ex": 3,
+   "problem": "3/5 + 1/3",
+   "student": "4/15",
+   "topic": "fractions",
+   "correct": "14/15",
+   "explained_by": [
+    "frac_add_tops_multiply_bottoms",
+    "frac_common_bottom_no_scaling"
+   ]
+  },
+  {
+   "mae": "MaE09",
+   "ex": 4,
+   "problem": "3/4 + 1/2",
+   "student": "4/4",
+   "topic": "fractions",
+   "correct": "1 1/4",
+   "explained_by": [
+    "frac_add_tops_keep_larger_bottom",
+    "frac_common_bottom_no_scaling",
+    "frac_add_tops_keep_first_bottom"
+   ]
+  },
+  {
+   "mae": "MaE10",
+   "ex": 1,
+   "problem": "7 - 1/3",
+   "student": "2",
+   "topic": "frac_sub",
+   "correct": "6 2/3",
+   "explained_by": []
+  },
+  {
+   "mae": "MaE10",
+   "ex": 2,
+   "problem": "8 1/3 - 2/3",
+   "student": "4 1/2",
+   "topic": "frac_sub",
+   "correct": "7 2/3",
+   "explained_by": []
+  },
+  {
+   "mae": "MaE10",
+   "ex": 3,
+   "problem": "6 - 1 1/4",
+   "student": "5 1/4",
+   "topic": "frac_sub",
+   "correct": "4 3/4",
+   "explained_by": [
+    "sub_smaller_from_larger"
+   ]
+  },
+  {
+   "mae": "MaE10",
+   "ex": 4,
+   "problem": "1 - 1/3",
+   "student": "1 1/3",
+   "topic": "frac_sub",
+   "correct": "2/3",
+   "explained_by": [
+    "sub_smaller_from_larger"
+   ]
+  },
+  {
+   "mae": "MaE11",
+   "ex": 1,
+   "problem": "6 2/3 - 3 1/6",
+   "student": "3 1/3",
+   "topic": "frac_sub",
+   "correct": "3 1/2",
+   "explained_by": [
+    "sub_parts_separately"
+   ]
+  },
+  {
+   "mae": "MaE11",
+   "ex": 2,
+   "problem": "4 5/8 - 1 3/4",
+   "student": "3 2/4",
+   "topic": "frac_sub",
+   "correct": "2 7/8",
+   "explained_by": [
+    "sub_parts_separately"
+   ]
+  },
+  {
+   "mae": "MaE11",
+   "ex": 3,
+   "problem": "5 3/8 - 2 2/3",
+   "student": "3 1/5",
+   "topic": "frac_sub",
+   "correct": "2 17/24",
+   "explained_by": [
+    "sub_parts_separately"
+   ]
+  },
+  {
+   "mae": "MaE11",
+   "ex": 4,
+   "problem": "7 2/5 - 4 7/10",
+   "student": "3 5/5",
+   "topic": "frac_sub",
+   "correct": "2 7/10",
+   "explained_by": [
+    "sub_parts_separately"
+   ]
+  },
+  {
+   "mae": "MaE13",
+   "ex": 1,
+   "problem": "2/3 \u00d7 3",
+   "student": "6/9",
+   "topic": "frac_mul",
+   "correct": "2",
+   "explained_by": [
+    "mul_whole_scales_both"
+   ]
+  },
+  {
+   "mae": "MaE13",
+   "ex": 2,
+   "problem": "1/4 \u00d7 6",
+   "student": "6/24",
+   "topic": "frac_mul",
+   "correct": "1 1/2",
+   "explained_by": [
+    "mul_whole_scales_both"
+   ]
+  },
+  {
+   "mae": "MaE13",
+   "ex": 3,
+   "problem": "4/5 \u00d7 2",
+   "student": "8/10",
+   "topic": "frac_mul",
+   "correct": "1 3/5",
+   "explained_by": [
+    "mul_whole_scales_both"
+   ]
+  },
+  {
+   "mae": "MaE13",
+   "ex": 4,
+   "problem": "3/8 \u00d7 4",
+   "student": "12/32",
+   "topic": "frac_mul",
+   "correct": "1 1/2",
+   "explained_by": [
+    "mul_whole_scales_both"
+   ]
+  },
+  {
+   "mae": "MaE14",
+   "ex": 1,
+   "problem": "4/6 \u00f7 2/2",
+   "student": "2/3",
+   "topic": "frac_div",
+   "correct": "2/3",
+   "explained_by": [
+    "div_correct",
+    "div_across_drop_remainder",
+    "div_multiplies_instead"
+   ]
+  },
+  {
+   "mae": "MaE14",
+   "ex": 2,
+   "problem": "6/8 \u00f7 2/8",
+   "student": "3/1",
+   "topic": "frac_div",
+   "correct": "3",
+   "explained_by": [
+    "div_correct",
+    "div_across_drop_remainder"
+   ]
+  },
+  {
+   "mae": "MaE14",
+   "ex": 3,
+   "problem": "6/10 \u00f7 2/4",
+   "student": "3/2",
+   "topic": "frac_div",
+   "correct": "1 1/5",
+   "explained_by": [
+    "div_across_drop_remainder"
+   ]
+  },
+  {
+   "mae": "MaE14",
+   "ex": 4,
+   "problem": "7/5 \u00f7 3/2",
+   "student": "2/2",
+   "topic": "frac_div",
+   "correct": "14/15",
+   "explained_by": [
+    "div_across_drop_remainder"
+   ]
+  },
+  {
+   "mae": "MaE15",
+   "ex": 1,
+   "problem": "2/3 \u00f7 3/8",
+   "student": "9/16",
+   "topic": "frac_div",
+   "correct": "1 7/9",
+   "explained_by": [
+    "div_flip_first"
+   ]
+  },
+  {
+   "mae": "MaE15",
+   "ex": 2,
+   "problem": "2/5 \u00f7 1/3",
+   "student": "5/6",
+   "topic": "frac_div",
+   "correct": "1 1/5",
+   "explained_by": [
+    "div_flip_first"
+   ]
+  },
+  {
+   "mae": "MaE15",
+   "ex": 3,
+   "problem": "3/4 \u00f7 1/5",
+   "student": "4/15",
+   "topic": "frac_div",
+   "correct": "3 3/4",
+   "explained_by": [
+    "div_flip_first"
+   ]
+  },
+  {
+   "mae": "MaE15",
+   "ex": 4,
+   "problem": "5/8 \u00f7 2/3",
+   "student": "16/15",
+   "topic": "frac_div",
+   "correct": "15/16",
+   "explained_by": [
+    "div_flip_first"
+   ]
+  },
+  {
+   "mae": "MaE18",
+   "ex": 1,
+   "problem": "-8 + 6",
+   "student": "2",
+   "topic": "integers",
+   "correct": "-2",
+   "explained_by": [
+    "int_always_positive"
+   ]
+  },
+  {
+   "mae": "MaE18",
+   "ex": 2,
+   "problem": "5 + (-9)",
+   "student": "4",
+   "topic": "integers",
+   "correct": "-4",
+   "explained_by": [
+    "int_always_positive",
+    "int_sign_of_first"
+   ]
+  },
+  {
+   "mae": "MaE18",
+   "ex": 3,
+   "problem": "7 + (-2)",
+   "student": "-5",
+   "topic": "integers",
+   "correct": "5",
+   "explained_by": []
+  },
+  {
+   "mae": "MaE18",
+   "ex": 4,
+   "problem": "4 + (-3)",
+   "student": "7",
+   "topic": "integers",
+   "correct": "1",
+   "explained_by": [
+    "int_plus_negative_is_plus"
+   ]
+  },
+  {
+   "mae": "MaE19",
+   "ex": 1,
+   "problem": "-6 + (-8)",
+   "student": "2",
+   "topic": "integers",
+   "correct": "-14",
+   "explained_by": [
+    "int_plus_negative_is_plus",
+    "int_leading_minus_covers_all"
+   ]
+  },
+  {
+   "mae": "MaE19",
+   "ex": 2,
+   "problem": "-8 + (-3)",
+   "student": "5",
+   "topic": "integers",
+   "correct": "-11",
+   "explained_by": []
+  },
+  {
+   "mae": "MaE19",
+   "ex": 3,
+   "problem": "-4 + (-3)",
+   "student": "7",
+   "topic": "integers",
+   "correct": "-7",
+   "explained_by": [
+    "int_two_negatives_make_positive",
+    "int_always_positive"
+   ]
+  },
+  {
+   "mae": "MaE19",
+   "ex": 4,
+   "problem": "-2 + (-5)",
+   "student": "7",
+   "topic": "integers",
+   "correct": "-7",
+   "explained_by": [
+    "int_two_negatives_make_positive",
+    "int_always_positive"
+   ]
+  }
+ ],
+ "loo": [
+  {
+   "mae": "MaE08",
+   "held_out": 1,
+   "committed_to": "frac_add_tops_add_bottoms",
+   "confidence": 0.982,
+   "predicted": "3/4",
+   "actual": "6/8",
+   "match": true
+  },
+  {
+   "mae": "MaE08",
+   "held_out": 2,
+   "committed_to": "frac_add_tops_add_bottoms",
+   "confidence": 0.982,
+   "predicted": "3/7",
+   "actual": "3/7",
+   "match": true
+  },
+  {
+   "mae": "MaE08",
+   "held_out": 3,
+   "committed_to": "frac_add_tops_add_bottoms",
+   "confidence": 0.983,
+   "predicted": "2/5",
+   "actual": "8/20",
+   "match": true
+  },
+  {
+   "mae": "MaE09",
+   "held_out": 1,
+   "committed_to": "frac_common_bottom_no_scaling",
+   "confidence": 0.992,
+   "predicted": "1/2",
+   "actual": "2/4",
+   "match": true
+  },
+  {
+   "mae": "MaE09",
+   "held_out": 2,
+   "committed_to": "frac_common_bottom_no_scaling",
+   "confidence": 0.992,
+   "predicted": "3/10",
+   "actual": "3/10",
+   "match": true
+  },
+  {
+   "mae": "MaE09",
+   "held_out": 3,
+   "committed_to": "frac_common_bottom_no_scaling",
+   "confidence": 0.992,
+   "predicted": "4/15",
+   "actual": "4/15",
+   "match": true
+  },
+  {
+   "mae": "MaE09",
+   "held_out": 4,
+   "committed_to": "frac_common_bottom_no_scaling",
+   "confidence": 0.992,
+   "predicted": "1",
+   "actual": "4/4",
+   "match": true
+  },
+  {
+   "mae": "MaE10",
+   "held_out": 1,
+   "committed_to": "no diagnosis",
+   "confidence": 0.74,
+   "predicted": "-",
+   "actual": "2",
+   "match": false
+  },
+  {
+   "mae": "MaE10",
+   "held_out": 2,
+   "committed_to": "no diagnosis",
+   "confidence": 0.74,
+   "predicted": "-",
+   "actual": "4 1/2",
+   "match": false
+  },
+  {
+   "mae": "MaE10",
+   "held_out": 3,
+   "committed_to": "no diagnosis",
+   "confidence": 0.984,
+   "predicted": "-",
+   "actual": "5 1/4",
+   "match": false
+  },
+  {
+   "mae": "MaE10",
+   "held_out": 4,
+   "committed_to": "no diagnosis",
+   "confidence": 0.984,
+   "predicted": "-",
+   "actual": "1 1/3",
+   "match": false
+  },
+  {
+   "mae": "MaE11",
+   "held_out": 1,
+   "committed_to": "sub_parts_separately",
+   "confidence": 0.998,
+   "predicted": "3 1/3",
+   "actual": "3 1/3",
+   "match": true
+  },
+  {
+   "mae": "MaE11",
+   "held_out": 2,
+   "committed_to": "sub_parts_separately",
+   "confidence": 0.998,
+   "predicted": "3 1/2",
+   "actual": "3 2/4",
+   "match": true
+  },
+  {
+   "mae": "MaE11",
+   "held_out": 3,
+   "committed_to": "sub_parts_separately",
+   "confidence": 0.998,
+   "predicted": "3 1/5",
+   "actual": "3 1/5",
+   "match": true
+  },
+  {
+   "mae": "MaE11",
+   "held_out": 4,
+   "committed_to": "sub_parts_separately",
+   "confidence": 0.998,
+   "predicted": "4",
+   "actual": "3 5/5",
+   "match": true
+  },
+  {
+   "mae": "MaE13",
+   "held_out": 1,
+   "committed_to": "mul_whole_scales_both",
+   "confidence": 0.999,
+   "predicted": "2/3",
+   "actual": "6/9",
+   "match": true
+  },
+  {
+   "mae": "MaE13",
+   "held_out": 2,
+   "committed_to": "mul_whole_scales_both",
+   "confidence": 0.999,
+   "predicted": "1/4",
+   "actual": "6/24",
+   "match": true
+  },
+  {
+   "mae": "MaE13",
+   "held_out": 3,
+   "committed_to": "mul_whole_scales_both",
+   "confidence": 0.999,
+   "predicted": "4/5",
+   "actual": "8/10",
+   "match": true
+  },
+  {
+   "mae": "MaE13",
+   "held_out": 4,
+   "committed_to": "mul_whole_scales_both",
+   "confidence": 0.999,
+   "predicted": "3/8",
+   "actual": "12/32",
+   "match": true
+  },
+  {
+   "mae": "MaE14",
+   "held_out": 1,
+   "committed_to": "div_across_drop_remainder",
+   "confidence": 0.998,
+   "predicted": "2/3",
+   "actual": "2/3",
+   "match": true
+  },
+  {
+   "mae": "MaE14",
+   "held_out": 2,
+   "committed_to": "div_across_drop_remainder",
+   "confidence": 0.998,
+   "predicted": "3",
+   "actual": "3/1",
+   "match": true
+  },
+  {
+   "mae": "MaE14",
+   "held_out": 3,
+   "committed_to": "div_across_drop_remainder",
+   "confidence": 0.976,
+   "predicted": "1 1/2",
+   "actual": "3/2",
+   "match": true
+  },
+  {
+   "mae": "MaE14",
+   "held_out": 4,
+   "committed_to": "div_across_drop_remainder",
+   "confidence": 0.976,
+   "predicted": "1",
+   "actual": "2/2",
+   "match": true
+  },
+  {
+   "mae": "MaE15",
+   "held_out": 1,
+   "committed_to": "div_flip_first",
+   "confidence": 0.998,
+   "predicted": "9/16",
+   "actual": "9/16",
+   "match": true
+  },
+  {
+   "mae": "MaE15",
+   "held_out": 2,
+   "committed_to": "div_flip_first",
+   "confidence": 0.998,
+   "predicted": "5/6",
+   "actual": "5/6",
+   "match": true
+  },
+  {
+   "mae": "MaE15",
+   "held_out": 3,
+   "committed_to": "div_flip_first",
+   "confidence": 0.998,
+   "predicted": "4/15",
+   "actual": "4/15",
+   "match": true
+  },
+  {
+   "mae": "MaE15",
+   "held_out": 4,
+   "committed_to": "div_flip_first",
+   "confidence": 0.998,
+   "predicted": "1 1/15",
+   "actual": "16/15",
+   "match": true
+  },
+  {
+   "mae": "MaE18",
+   "held_out": 1,
+   "committed_to": "no diagnosis",
+   "confidence": 0.991,
+   "predicted": "-",
+   "actual": "2",
+   "match": false
+  },
+  {
+   "mae": "MaE18",
+   "held_out": 2,
+   "committed_to": "no diagnosis",
+   "confidence": 0.991,
+   "predicted": "-",
+   "actual": "4",
+   "match": false
+  },
+  {
+   "mae": "MaE18",
+   "held_out": 3,
+   "committed_to": "no diagnosis",
+   "confidence": 0.615,
+   "predicted": "-",
+   "actual": "-5",
+   "match": false
+  },
+  {
+   "mae": "MaE18",
+   "held_out": 4,
+   "committed_to": "no diagnosis",
+   "confidence": 0.617,
+   "predicted": "-",
+   "actual": "7",
+   "match": false
+  },
+  {
+   "mae": "MaE19",
+   "held_out": 1,
+   "committed_to": "no diagnosis",
+   "confidence": 0.383,
+   "predicted": "-",
+   "actual": "2",
+   "match": false
+  },
+  {
+   "mae": "MaE19",
+   "held_out": 2,
+   "committed_to": "no diagnosis",
+   "confidence": 0.381,
+   "predicted": "-",
+   "actual": "5",
+   "match": false
+  },
+  {
+   "mae": "MaE19",
+   "held_out": 3,
+   "committed_to": "no diagnosis",
+   "confidence": 0.965,
+   "predicted": "-",
+   "actual": "7",
+   "match": false
+  },
+  {
+   "mae": "MaE19",
+   "held_out": 4,
+   "committed_to": "no diagnosis",
+   "confidence": 0.982,
+   "predicted": "-",
+   "actual": "7",
+   "match": false
+  }
+ ]
+}

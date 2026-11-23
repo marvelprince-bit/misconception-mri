@@ -1,271 +1,468 @@
-"""Diagnosis engine.
+"""The diagnosis engine.
 
-1. Keep every hypothesis (the correct method or a wrong rule) that reproduces
-   all of the student's answers exactly.
-2. If more than one survives, ask the question whose predicted answers split
-   the survivors most evenly (maximum entropy of the partition). One answer to
-   that question rules out as many hypotheses as possible.
-3. If nothing survives, say so: the student's reasoning is not in the bank,
-   and a teacher should look.
+How it works, in plain words:
+
+1. Keep a list of candidate rules (the correct method, known wrong rules, and any
+   AI-written rule that passed the admission check).
+2. After every answer, score how well each rule explains ALL the answers so far.
+   One extra candidate, "unknown", stands for "no single rule explains this"
+   (careless slips, guessing, or a rule the tool has never seen).
+3. Pick the next question where the remaining rules disagree most, so one answer
+   rules out as many candidates as possible.
+4. A rule may miss an answer once (a careless slip). The tool then re-tests with a
+   look-alike question. A second miss on the same shape of question is not a slip:
+   that rule is struck out.
+5. Before a wrong-rule diagnosis is final, the tool writes down predictions for
+   new kinds of question. The diagnosis stands only if the student's answers match.
+6. Before saying "no misconception", the tool tests every kind of question once.
 """
 from __future__ import annotations
 
 import math
-from collections import defaultdict
+import random
 from dataclasses import dataclass, field
 from fractions import Fraction
 from functools import lru_cache
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
-from .core import Answer, Operand, Problem, correct_answer, same
-from .rules import CORRECT_ID, RULES_BY_ID, Rule, student_answer
+from .problems import Problem, format_answer, full_pool, kind, shape
+from .rules import Rule, library
 
-Observation = Tuple[Problem, Answer]
-
-
-def answer_key(a: Optional[Answer]):
-    if a is None:
-        return ("none",)
-    if isinstance(a, tuple):
-        return ("form",) + a
-    v = Fraction(a)
-    return ("value", v.numerator, v.denominator)
-
-
-# ---- question pools -------------------------------------------------------------
-
-def _proper(dmax: int) -> List[Operand]:
-    return [Operand(0, n, d) for d in range(2, dmax + 1) for n in range(1, d)]
+UNKNOWN = "unknown"
 
 
 @lru_cache(maxsize=None)
-def problem_pool(op: str) -> Tuple[Problem, ...]:
-    """All candidate questions for one operation, simplest first."""
-    fr = _proper(8)
-    out: List[Problem] = []
-    if op in ("+", "*", "/"):
-        out += [Problem(op, a, b) for a in fr for b in fr]
-    if op == "*":
-        wholes = [Operand(k, 0, 1) for k in range(2, 7)]
-        out += [Problem(op, a, w) for a in fr for w in wholes]
-    if op == "-":
-        out += [Problem(op, a, b) for a in fr for b in fr if a.value > b.value]
-        mixed = [Operand(w, f.n, f.d) for w in range(1, 6) for f in _proper(6)]
-        wholes = [Operand(k, 0, 1) for k in range(1, 7)]
-        for x in mixed + wholes:
-            for y in mixed + _proper(6):
-                if y.value < x.value:  # keep results positive, as in class
-                    out.append(Problem(op, x, y))
-    if op == "simplify":
-        out += [Problem(op, Operand(0, n, d)) for d in range(2, 13) for n in range(1, d + 1)
-                if math.gcd(n, d) > 1]
-    out.sort(key=complexity)
-    return tuple(out)
+def _full_pool(domain: str) -> tuple:
+    return tuple(full_pool(domain))
 
 
-def complexity(p: Problem) -> int:
-    ops = [p.x] + ([p.y] if p.y else [])
-    return sum(o.w * 3 + o.n + o.d for o in ops)
+def _split(rules: tuple, problem: Problem) -> tuple:
+    """How one question divides the rules: rules with the same answer share a group."""
+    first_seen: dict = {}
+    return tuple(first_seen.setdefault(r.predict(problem), k) for k, r in enumerate(rules))
 
 
-# ---- core logic -----------------------------------------------------------------
-
-def hypotheses_for(ops: Iterable[str], rules: Dict[str, Rule] = RULES_BY_ID) -> List[str]:
-    ops = set(ops)
-    return [CORRECT_ID] + [r.id for r in rules.values() if ops & set(r.ops)]
-
-
-def mismatches(h: str, obs: Sequence[Observation], rules=RULES_BY_ID) -> int:
-    return sum(0 if same(student_answer(h, p, rules), a) else 1 for p, a in obs)
-
-
-def survivors(hyps: Sequence[str], obs: Sequence[Observation], tolerance: int = 0,
-              rules=RULES_BY_ID) -> List[str]:
-    return [h for h in hyps if mismatches(h, obs, rules) <= tolerance]
-
-
-def split(hyps: Sequence[str], p: Problem, rules=RULES_BY_ID) -> Dict[tuple, List[str]]:
-    groups: Dict[tuple, List[str]] = defaultdict(list)
-    for h in hyps:
-        groups[answer_key(student_answer(h, p, rules))].append(h)
-    return groups
-
-
-def entropy(groups: Dict[tuple, List[str]]) -> float:
-    total = sum(len(v) for v in groups.values())
-    return -sum((len(v) / total) * math.log2(len(v) / total) for v in groups.values())
-
-
-def best_question(hyps: Sequence[str], pool: Sequence[Problem], asked: Iterable[Problem] = (),
-                  rules=RULES_BY_ID) -> Optional[Problem]:
-    """The simplest question that splits the remaining hypotheses most."""
-    if len(hyps) < 2:
-        return None
-    asked = set(asked)
-    best, best_h = None, 0.0
-    for p in pool:  # pool is sorted simplest first, so ties keep the simpler one
-        if p in asked:
-            continue
-        h = entropy(split(hyps, p, rules))
-        if h > best_h + 1e-9:
-            best, best_h = p, h
-            if best_h >= math.log2(len(hyps)) - 1e-9:
-                break  # cannot do better than splitting everyone apart
-    return best
-
-
-def traps(rule_id: str, pool: Sequence[Problem], rules=RULES_BY_ID) -> List[Problem]:
-    """Questions where this wrong rule still produces the right answer."""
-    rule = rules[rule_id]
-    return [p for p in pool if rule.fn(p) is not None and same(rule.fn(p), correct_answer(p))]
-
-
-# ---- stress coverage ------------------------------------------------------------
-# A diagnosis is only confirmed after the student has met every "stress" kind
-# of problem for the operation. These are the situations where wrong methods
-# typically break, so a student cannot pass by only seeing easy cases. This
-# guards against wrong rules that are not in the bank but happen to give
-# correct answers on easy problems.
-
-def _unlike_shared(p):
-    return p.x.is_simple and p.y.is_simple and p.x.d != p.y.d and math.gcd(p.x.d, p.y.d) > 1
-
-
-def _unlike_coprime(p):
-    return p.x.is_simple and p.y.is_simple and math.gcd(p.x.d, p.y.d) == 1
-
-
-def _needs_regrouping(p):
-    fx = Fraction(p.x.n, p.x.d)
-    fy = Fraction(p.y.n, p.y.d)
-    return p.x.w > 0 and fx < fy
-
-
-def _frac_times_whole(p):
-    return (p.x.is_simple and p.y.is_whole) or (p.y.is_simple and p.x.is_whole)
-
-
-def _frac_times_frac(p):
-    return p.x.is_simple and p.y.is_simple
-
-
-def _inexact_across(p):
-    return (p.x.is_simple and p.y.is_simple and p.x.n >= p.y.n and p.x.d >= p.y.d
-            and (p.x.n % p.y.n != 0 or p.x.d % p.y.d != 0))
-
-
-def _mixed_unlike(p):
-    return p.x.w > 0 and p.y.w > 0 and p.x.n > 0 and p.y.n > 0 and p.x.d != p.y.d
-
-
-STRESS = {
-    "+": {"unlike denominators with a common factor": _unlike_shared,
-          "unlike denominators with no common factor": _unlike_coprime},
-    "-": {"regrouping a whole": _needs_regrouping,
-          "unlike denominators with a common factor": _unlike_shared,
-          "two mixed numbers with unlike denominators": _mixed_unlike},
-    "*": {"fraction times whole number": _frac_times_whole,
-          "fraction times fraction": _frac_times_frac},
-    "/": {"tops and bottoms do not divide evenly": _inexact_across},
-    "simplify": {},
-}
-
-
-def uncovered(obs: Sequence[Observation], ops: Iterable[str]) -> List[Tuple[str, str]]:
-    seen = [p for p, _ in obs]
-    out = []
-    for op in ops:
-        for name, pred in STRESS[op].items():
-            if not any(p.op == op and pred(p) for p in seen):
-                out.append((op, name))
-    return out
+@lru_cache(maxsize=64)
+def _build_buckets(rules: tuple, pool: tuple) -> dict:
+    """Group pool questions by (how they split the rules, kind of question)."""
+    buckets: dict[tuple, list[int]] = {}
+    for i, problem in enumerate(pool):
+        buckets.setdefault((_split(rules, problem), kind(problem)), []).append(i)
+    return buckets
 
 
 @dataclass
-class Diagnosis:
-    status: str  # "confirmed", "unknown", "ambiguous", "ask"
-    survivors: List[str]
-    next_question: Optional[Problem] = None
-    note: str = ""
-    evidence: List[dict] = field(default_factory=list)
-    prediction: Optional[Answer] = None  # the answer the leading method expects, stated before the student answers
+class Observation:
+    problem: Problem
+    answer: Fraction
+    purpose: str = "given"  # "given" | "diagnose" | "confirm"
+    predicted: Fraction | None = None  # written down BEFORE a confirm question is asked
+    predicted_rule: str | None = None
 
 
-def _trivial(p: Problem, a: Answer) -> bool:
-    """Answers like 0 or a copy of an operand are produced by many methods,
-    so they are weak evidence for any single one."""
-    if isinstance(a, tuple):
-        return False
-    v = Fraction(a)
-    return v == 0 or v == p.x.value or (p.y is not None and v == p.y.value)
+@dataclass
+class Question:
+    problem: Problem
+    purpose: str  # "diagnose" | "confirm" | "explore"
+    score: float = 0.0  # disagreement in bits (diagnose questions)
+    predicted: Fraction | None = None
+    predicted_rule: str | None = None
+    why: str = ""
 
 
-def fired_values(h: str, obs: Sequence[Observation], rules=RULES_BY_ID) -> set:
-    """Distinct non-trivial wrong answers that method h reproduced."""
-    vals = set()
-    for p, a in obs:
-        pred = student_answer(h, p, rules)
-        if same(pred, a) and not same(pred, correct_answer(p)) and not _trivial(p, pred):
-            vals.add(answer_key(pred))
-    return vals
+@dataclass
+class Status:
+    state: str  # "undecided" | "diagnosed" | "no_misconception" | "abstain" | "inconclusive"
+    rule: Rule | None
+    confidence: float
+    confirmed: bool
+    message: str
+    ranking: list[tuple[str, float]] = field(default_factory=list)
+    kinds_tested: int = 0
+    kinds_total: int = 0
+
+    @property
+    def final(self) -> bool:
+        return self.state != "undecided"
 
 
-def strong_fires(h: str, obs: Sequence[Observation], rules=RULES_BY_ID) -> int:
-    return len(fired_values(h, obs, rules))
+class Session:
+    def __init__(
+        self,
+        domain: str,
+        rules: list[Rule] | None = None,
+        pool: list[Problem] | None = None,
+        policy: str = "disagreement",  # or "random" (the comparison baseline)
+        seed: int | None = None,
+        slip: float = 0.10,  # chance a student who knows a rule still slips
+        wrong_answer_prob: float = 0.05,  # chance a slip lands on one particular wrong answer
+        unknown_lik: float = 0.15,  # how well "unknown" explains any single answer
+        unknown_prior: float = 0.05,
+        correct_prior: float = 0.50,  # most students who answer correctly do know the method
+        confidence: float = 0.95,
+        min_questions: int = 3,
+        min_to_abstain: int = 5,  # do not give up on a student after only a few answers
+        max_questions: int = 15,
+        confirmations: int = 2,  # successful predictions needed before a wrong-rule diagnosis
+        # How confirmation questions are chosen. "novel" is the default. The other two
+        # are earlier, weaker designs kept so the comparison in evidence/ can be re-run.
+        confirm_mode: str = "novel",  # "novel" | "novel_prefer_solo" | "solo"
+        clear_needs_all_kinds: bool = True,  # test every kind before saying "no misconception"
+    ):
+        if policy not in ("disagreement", "random"):
+            raise ValueError("policy must be 'disagreement' or 'random'")
+        if confirm_mode not in ("novel", "novel_prefer_solo", "solo"):
+            raise ValueError("confirm_mode must be 'novel', 'novel_prefer_solo' or 'solo'")
+        self.domain = domain
+        self.rules: list[Rule] = list(rules) if rules is not None else library(domain)
+        self.pool = tuple(pool) if pool is not None else _full_pool(domain)
+        self.policy = policy
+        self.rng = random.Random(seed)
+        self.slip = slip
+        self.wrong_answer_prob = wrong_answer_prob
+        self.unknown_lik = unknown_lik
+        self.unknown_prior = unknown_prior
+        self.correct_prior = correct_prior
+        self.confidence = confidence
+        self.min_questions = min_questions
+        self.min_to_abstain = min_to_abstain
+        self.max_questions = max_questions
+        self.confirmations = confirmations
+        self.confirm_mode = confirm_mode
+        self.clear_needs_all_kinds = clear_needs_all_kinds
+        self.observations: list[Observation] = []
+        self.all_kinds = sorted({kind(p) for p in self.pool})
+        self._rebuild()
 
+    # ------------------------------------------------------------- set-up
+    def _rebuild(self) -> None:
+        self._buckets = _build_buckets(tuple(self.rules), self.pool)
+        self._splits: dict[tuple, list[int]] = {}
+        for (split, _), indices in self._buckets.items():
+            self._splits.setdefault(split, []).extend(indices)
 
-def _distinctive(h, q, seen_vals, rules) -> bool:
-    if h == CORRECT_ID:
-        return False
-    pred = student_answer(h, q, rules)
-    return (not same(pred, correct_answer(q)) and not _trivial(q, pred)
-            and answer_key(pred) not in seen_vals)
+    def add_rule(self, rule: Rule) -> None:
+        self.rules.append(rule)
+        self._rebuild()
 
+    @property
+    def correct(self) -> Rule | None:
+        return next((r for r in self.rules if r.is_correct), None)
 
-def diagnose(obs: Sequence[Observation], ops: Iterable[str], tolerance: int = 0,
-             rules=RULES_BY_ID, check_coverage: bool = True, min_predictions: int = 2) -> Diagnosis:
-    ops = list(ops)
-    hyps = hypotheses_for(ops, rules)
-    alive = survivors(hyps, obs, tolerance, rules)
-    evidence = [{"problem": str(p), "answer": a,
-                 "explained_by": [h for h in hyps if same(student_answer(h, p, rules), a)]}
-                for p, a in obs]
-    if not alive:
-        return Diagnosis("unknown", [], note="No method in the bank explains these answers. Refer to a teacher.",
-                         evidence=evidence)
-    pool = [q for op in ops for q in problem_pool(op)]
-    if len(alive) == 1:
-        gaps = uncovered(obs, ops) if check_coverage else []
-        h = alive[0]
-        if not gaps:
-            if h == CORRECT_ID or not check_coverage or strong_fires(h, obs, rules) >= min_predictions:
-                return Diagnosis("confirmed", alive, evidence=evidence)
-            # Confirmation by prediction: ask a question where this method gives a
-            # distinctive wrong answer, and state that answer before the student replies.
-            asked = {p for p, _ in obs}
-            everyone = hypotheses_for(ops, rules)
-            seen_vals = fired_values(h, obs, rules)
-            cands = [q for q in pool if q not in asked and _distinctive(h, q, seen_vals, rules)]
-            if not cands:
-                return Diagnosis("confirmed", alive, evidence=evidence,
-                                 note="No further distinctive question available.")
-            q = max(cands, key=lambda q: (round(entropy(split(everyone, q, rules)), 9), -complexity(q)))
-            return Diagnosis("ask", alive, next_question=q, prediction=student_answer(h, q, rules),
-                             note="Predicting the answer before you give it, to confirm.", evidence=evidence)
-        op, name = gaps[0]
-        asked = {p for p, _ in obs}
-        # Among stress questions, ask the one that best separates every method in
-        # the bank, so a look-alike rule (known or not) is likely to diverge here.
-        everyone = hypotheses_for([op], rules)
-        cands = [q for q in problem_pool(op) if STRESS[op][name](q) and q not in asked]
-        seen_vals = fired_values(h, obs, rules) if h != CORRECT_ID else set()
-        probe = max(cands, key=lambda q: (_distinctive(h, q, seen_vals, rules),
-                                          round(entropy(split(everyone, q, rules)), 9), -complexity(q)))
-        pred = student_answer(h, probe, rules) if _distinctive(h, probe, seen_vals, rules) else None
-        return Diagnosis("ask", alive, next_question=probe, prediction=pred,
-                         note=f"Checking a harder case before confirming: {name}.", evidence=evidence)
-    q = best_question(alive, pool, [p for p, _ in obs], rules)
-    if q is None:
-        return Diagnosis("ambiguous", alive, note="No question in the pool separates these methods.",
-                         evidence=evidence)
-    return Diagnosis("ask", alive, next_question=q, evidence=evidence)
+    def rule_by_id(self, rule_id: str) -> Rule | None:
+        return next((r for r in self.rules if r.id == rule_id), None)
+
+    # ------------------------------------------------------------ evidence
+    def record(self, problem: Problem, answer: Fraction, question: Question | None = None) -> None:
+        if question is not None:
+            obs = Observation(problem, answer, question.purpose, question.predicted, question.predicted_rule)
+        else:
+            obs = Observation(problem, answer)
+        self.observations.append(obs)
+
+    def _priors(self) -> dict[str, float]:
+        mass = 1.0 - self.unknown_prior
+        wrong = [r for r in self.rules if not r.is_correct]
+        has_correct = len(wrong) < len(self.rules)
+        priors = {}
+        for r in self.rules:
+            if not has_correct:
+                priors[r.id] = mass / len(self.rules)
+            elif r.is_correct:
+                priors[r.id] = mass * (self.correct_prior if wrong else 1.0)
+            else:
+                priors[r.id] = mass * (1.0 - self.correct_prior) / len(wrong)
+        priors[UNKNOWN] = self.unknown_prior
+        return priors
+
+    def posterior(self) -> dict[str, float]:
+        """How likely each candidate is, given every answer so far. Sums to 1."""
+        log_hit = math.log(1.0 - self.slip)
+        log_miss = math.log(self.slip * self.wrong_answer_prob)
+        logs = {k: math.log(v) for k, v in self._priors().items() if v > 0}
+        for obs in self.observations:
+            for r in self.rules:
+                if r.id in logs:
+                    logs[r.id] += log_hit if r.predict(obs.problem) == obs.answer else log_miss
+            logs[UNKNOWN] += math.log(self.unknown_lik)
+        top = max(logs.values())
+        weights = {k: math.exp(v - top) for k, v in logs.items()}
+        if self.confirm_mode != "solo":
+            for r in self.rules:
+                if self.misses(r)[1]:
+                    weights[r.id] = 0.0  # struck out: missed twice on the same shape of question
+        total = sum(weights.values())
+        return {k: w / total for k, w in weights.items()}
+
+    def misses(self, rule: Rule) -> tuple[set[str], bool]:
+        """(shapes with a miss not yet re-tested, struck out?) for one rule.
+
+        One miss on a shape is treated as a possible slip until a look-alike question
+        is answered the way the rule predicts. Two misses on one shape strike the rule out.
+        """
+        count: dict[str, int] = {}
+        pending: set[str] = set()
+        for o in self.observations:
+            sh = shape(o.problem)
+            if rule.predict(o.problem) == o.answer:
+                pending.discard(sh)
+            else:
+                count[sh] = count.get(sh, 0) + 1
+                pending.add(sh)
+        return pending, any(c >= 2 for c in count.values())
+
+    def ranking(self) -> list[tuple[str, float]]:
+        return sorted(self.posterior().items(), key=lambda kv: -kv[1])
+
+    def kinds_tested(self) -> set[str]:
+        return {kind(o.problem) for o in self.observations}
+
+    # ----------------------------------------------------- question choice
+    def _asked(self) -> set[Problem]:
+        return {o.problem for o in self.observations}
+
+    def _pick_from(self, indices: list[int], asked: set[Problem]) -> Problem | None:
+        fresh = [i for i in indices if self.pool[i] not in asked]
+        return self.pool[self.rng.choice(fresh)] if fresh else None
+
+    def disagreement(self, split: tuple, post: dict[str, float]) -> float:
+        """Entropy (in bits) of the answers the rules predict, weighted by belief."""
+        groups: dict[int, float] = {}
+        for k, g in enumerate(split):
+            groups[g] = groups.get(g, 0.0) + post[self.rules[k].id]
+        total = sum(groups.values())
+        if total <= 0:
+            return 0.0
+        return -sum((m / total) * math.log2(m / total) for m in groups.values() if m > 0)
+
+    def _diagnostic_question(self, post: dict[str, float]) -> Question | None:
+        asked = self._asked()
+        if self.policy == "random":
+            problem = self._pick_from(list(range(len(self.pool))), asked)
+            return Question(problem, "diagnose", why="chosen at random (baseline)") if problem else None
+        scored = [(self.disagreement(s, post), self.rng.random(), s) for s in self._splits]
+        for score, _, split in sorted(scored, key=lambda t: (-t[0], t[1])):
+            problem = self._pick_from(self._splits[split], asked)
+            if problem:
+                groups = len(set(split))
+                return Question(problem, "diagnose", score=score,
+                                why=f"the candidate rules give {groups} different answers here")
+        return None
+
+    def _retest_question(self, rule: Rule, pending: set[str]) -> Question | None:
+        """A look-alike of a question this rule got wrong: was that miss a careless slip?"""
+        asked = self._asked()
+        fresh = [p for p in self.pool
+                 if shape(p) in pending and p not in asked and rule.predict(p) is not None]
+        if not fresh:
+            return None
+        problem = self.rng.choice(fresh)
+        return Question(problem, "confirm", predicted=rule.predict(problem), predicted_rule=rule.id,
+                        why="re-test: an earlier answer of this shape did not fit the rule")
+
+    def _confirm_question(self, rule: Rule) -> Question | None:
+        """A fresh question that puts the leading rule to a real test.
+
+        The tool writes down what the rule predicts, then asks. It picks a kind of
+        question not asked yet, at random. A rule that only fits the kinds already
+        seen proves little, and spreading the tests evenly across kinds is what
+        catches a student whose real rule only looks like this one some of the time.
+
+        Two earlier designs are kept for comparison:
+          "solo"              -> the question where fewest other rules share the answer
+          "novel_prefer_solo" -> a new kind, but still preferring unique answers
+        Both steer the test toward the same few kinds, which hides look-alike rules.
+        """
+        asked = self._asked()
+        k = self.rules.index(rule)
+        correct = self.correct
+        c = self.rules.index(correct) if correct is not None else None
+        seen = self.kinds_tested()
+        options = []
+        for (split, qkind), indices in self._buckets.items():
+            shared = sum(1 for j, g in enumerate(split) if g == split[k] and j != k)
+            fresh = [i for i in indices
+                     if self.pool[i] not in asked and rule.predict(self.pool[i]) is not None]
+            if not fresh:
+                continue
+            novel = qkind not in seen
+            why = "a kind of question not tested yet" if novel else "another test of the leading rule"
+            if self.confirm_mode == "solo":
+                if len(self.rules) > 1 and shared == len(self.rules) - 1:
+                    continue
+                key, why = (shared,), "few other rules give this answer"
+            elif self.confirm_mode == "novel_prefer_solo":
+                if len(self.rules) > 1 and shared == len(self.rules) - 1:
+                    continue
+                key = (not novel, not (c is None or split[k] != split[c]), shared)
+            else:
+                # Prefer questions where this rule and the correct method disagree: a
+                # prediction that equals the correct answer cannot tell them apart.
+                distinct = c is None or rule.is_correct or split[k] != split[c]
+                key = (not distinct, not novel, qkind)
+                if distinct and not rule.is_correct:
+                    why += "; the rule predicts a wrong answer here"
+            options.append((key, fresh, why))
+        if not options:
+            return None
+        best = min(o[0] for o in options)
+        if self.confirm_mode == "novel":
+            # choose the kind at random first, then a question of that kind
+            kinds = sorted({o[0][2] for o in options if o[0][:2] == best[:2]})
+            chosen = self.rng.choice(kinds)
+            fresh = [i for o in options if o[0] == (best[0], best[1], chosen) for i in o[1]]
+            why = next(o[2] for o in options if o[0] == (best[0], best[1], chosen))
+        else:
+            tied = [o for o in options if o[0] == best]
+            _, fresh, why = self.rng.choice(tied)
+        problem = self.pool[self.rng.choice(fresh)]
+        return Question(problem, "confirm", predicted=rule.predict(problem),
+                        predicted_rule=rule.id, why=why)
+
+    def _coverage_question(self, rule: Rule) -> Question | None:
+        """A question from a kind that has not been tested yet."""
+        asked = self._asked()
+        seen = self.kinds_tested()
+        k = self.rules.index(rule)
+        options = []
+        for (split, qkind), indices in self._buckets.items():
+            if qkind in seen:
+                continue
+            fresh = [i for i in indices if self.pool[i] not in asked]
+            if fresh:
+                shared = sum(1 for j, g in enumerate(split) if g == split[k] and j != k)
+                options.append((shared, self.rng.random(), fresh))
+        if not options:
+            return None
+        _, _, fresh = min(options, key=lambda o: (o[0], o[1]))
+        problem = self.pool[self.rng.choice(fresh)]
+        return Question(problem, "confirm", predicted=rule.predict(problem), predicted_rule=rule.id,
+                        why="a kind of question not tested yet")
+
+    def _confirm_hits(self, rule: Rule) -> int:
+        """Predictions made before the answer that came true. For a wrong rule, only
+        predictions that differ from the correct answer count: matching the correct
+        answer does not tell the wrong rule apart from correct reasoning."""
+        correct = self.correct
+        return sum(
+            1 for o in self.observations
+            if o.purpose == "confirm" and o.predicted_rule == rule.id and o.answer == o.predicted
+            and (rule.is_correct or correct is None or correct.predict(o.problem) != o.predicted)
+        )
+
+    def _decide(self) -> tuple[Status, Question | None]:
+        post = self.posterior()
+        ranking = sorted(post.items(), key=lambda kv: -kv[1])
+        top_id, top_p = ranking[0]
+        n = len(self.observations)
+        sure = top_p >= self.confidence
+        enough = n >= self.min_questions
+        cover = dict(kinds_tested=len(self.kinds_tested()), kinds_total=len(self.all_kinds))
+
+        def status(state, rule, confirmed, message):
+            return Status(state, rule, top_p, confirmed, message, ranking, **cover)
+
+        if sure and n >= self.min_to_abstain and top_id == UNKNOWN:
+            return status("abstain", None, False,
+                          "No single rule explains these answers. This looks like careless slips, "
+                          "guessing, or a rule the tool does not know. No diagnosis is given."), None
+
+        if sure and top_id != UNKNOWN:
+            rule = self.rule_by_id(top_id)
+            pending = self.misses(rule)[0] if self.confirm_mode != "solo" else set()
+            question = self._retest_question(rule, pending) if pending else None
+            if question is not None:
+                confirmed = False
+            elif rule.is_correct and self.clear_needs_all_kinds:
+                question = self._coverage_question(rule)
+                confirmed = question is None
+            else:
+                confirmed = self._confirm_hits(rule) >= self.confirmations
+                question = None if confirmed else self._confirm_question(rule)
+            if enough and question is None:
+                if rule.is_correct:
+                    message = (f"No known wrong rule found. Correct on {cover['kinds_tested']} of "
+                               f"{cover['kinds_total']} kinds of question.")
+                    return status("no_misconception", rule, confirmed, message), None
+                note = (f"confirmed by {self._confirm_hits(rule)} prediction(s) made before the answer was seen"
+                        if confirmed else "not fully confirmed: ran out of questions that could test it")
+                return status("diagnosed", rule, confirmed, f"{rule.label} ({note})"), None
+            if question is not None and n < self.max_questions:
+                return status("undecided", rule, False, "Leading rule found. Testing it with a prediction."), question
+
+        if n >= self.max_questions:
+            return status("inconclusive", None, False,
+                          f"Still unsure after {n} answers. No diagnosis is given."), None
+
+        question = self._diagnostic_question(post)
+        if question is None:
+            return status("inconclusive", None, False,
+                          "Ran out of questions that could separate the rules."), None
+        return status("undecided", None, False, "More answers needed."), question
+
+    def status(self) -> Status:
+        return self._decide()[0]
+
+    def next_question(self) -> Question | None:
+        """The next question to ask, or None when the session is finished."""
+        return self._decide()[1]
+
+    def wrong_answers(self) -> int:
+        correct = self.correct
+        return sum(1 for o in self.observations if correct.predict(o.problem) != o.answer)
+
+    def explore_question(self) -> Question | None:
+        """When no known rule fits: collect more of the student's wrong answers.
+
+        The AI rule-writer needs several wrong answers to work from. This picks a
+        look-alike of a question the student got wrong, or a kind not tested yet,
+        whichever has been asked least.
+        """
+        correct = self.correct
+        asked = self._asked()
+        wrong_shapes = {shape(o.problem) for o in self.observations
+                        if correct.predict(o.problem) != o.answer}
+        seen_kinds = self.kinds_tested()
+        times: dict[str, int] = {}
+        for o in self.observations:
+            times[shape(o.problem)] = times.get(shape(o.problem), 0) + 1
+        fresh = [p for p in self.pool
+                 if p not in asked and (shape(p) in wrong_shapes or kind(p) not in seen_kinds)]
+        if not fresh:
+            return None
+        fewest = min(times.get(shape(p), 0) for p in fresh)
+        problem = self.rng.choice([p for p in fresh if times.get(shape(p), 0) == fewest])
+        return Question(problem, "explore", why="collecting more answers to work out an unknown rule")
+
+    # ---------------------------------------------------------- reporting
+    def trap_report(self) -> dict:
+        """Right answers, wrong rule: which wrong rules would give these same answers?"""
+        correct = self.correct
+        obs = self.observations
+        all_correct = bool(obs) and correct is not None and all(
+            correct.predict(o.problem) == o.answer for o in obs)
+        hidden = [r for r in self.rules if not r.is_correct
+                  and all(r.predict(o.problem) == o.answer for o in obs)]
+        return {
+            "answers": len(obs),
+            "all_correct": all_correct,
+            "trap_possible": all_correct and bool(hidden),
+            "hidden_rules": hidden,
+            "kinds_tested": len(self.kinds_tested()),
+            "kinds_total": len(self.all_kinds),
+        }
+
+    def predictions_table(self, problem: Problem) -> list[tuple[Rule, str, float]]:
+        """For one question: what each rule predicts, next to how likely the rule is."""
+        post = self.posterior()
+        rows = [(r, format_answer(r.predict(problem)), post[r.id]) for r in self.rules]
+        return sorted(rows, key=lambda row: -row[2])
+
+    def fix_questions(self, rule: Rule, n: int = 3) -> list[Problem]:
+        """Practice questions where the diagnosed rule gives a wrong answer."""
+        correct = self.correct
+        if correct is None:
+            return []
+        asked = self._asked()
+        differ = [p for p in self.pool if p not in asked and rule.predict(p) != correct.predict(p)]
+        self.rng.shuffle(differ)
+        return differ[:n]

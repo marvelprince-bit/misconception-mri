@@ -1,0 +1,108 @@
+"""Test the AI rule-writer: does the hidden-answer check keep bad rules out?
+
+Set-up: one wrong rule is REMOVED from the tool's list, and a simulated student
+follows it. The tool should notice that no known rule fits, ask the AI to write a
+rule, and admit that rule only if it predicts answers the AI never saw.
+
+Offline (no key, checks the plumbing with stand-in writers):
+    python scripts/evaluate_ai.py --writer oracle
+    python scripts/evaluate_ai.py --writer cheat
+
+Live (needs GEMINI_API_KEY; this is the result to report in the submission):
+    python scripts/evaluate_ai.py --writer gemini --seeds 5
+
+Writes evidence/ai_results_<writer>.json and prints a table.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import statistics
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from mri import fakes  # noqa: E402
+from mri.engine import Session  # noqa: E402
+from mri.pipeline import run_session  # noqa: E402
+from mri.problems import DOMAINS  # noqa: E402
+from mri.proposer import make_proposer  # noqa: E402
+from mri.rules import library  # noqa: E402
+from mri.student import SimulatedStudent  # noqa: E402
+
+OUT = Path(__file__).resolve().parent.parent / "evidence"
+
+
+def run(writer: str, seeds: int, gate: bool) -> dict:
+    rows = []
+    for domain in DOMAINS:
+        for hidden in library(domain):
+            if hidden.is_correct:
+                continue
+            rules = [r for r in library(domain) if r.id != hidden.id]
+            for seed in range(seeds):
+                ask = {"oracle": fakes.oracle(hidden.id), "cheat": fakes.cheat,
+                       "down": fakes.down}.get(writer) or make_proposer(writer)
+                session = Session(domain, rules=rules, seed=seed)
+                log = run_session(session, SimulatedStudent(hidden, 0.0, seed=seed), ask=ask, gate=gate)
+                adm = log.admission
+                admitted = bool(adm and adm.admitted)
+                # Ground truth: does the admitted rule match the student's real rule on EVERY question?
+                true_match = admitted and all(
+                    adm.rule.predict(p) == hidden.predict(p) for p in session.pool)
+                final = log.status
+                if final.state == "diagnosed" and final.rule.source == "ai":
+                    result = "right" if true_match else "wrong"
+                elif final.state in ("diagnosed", "no_misconception"):
+                    result = "wrong"
+                else:
+                    result = "no_diagnosis"
+                rows.append({"domain": domain, "hidden": hidden.id, "seed": seed,
+                             "ai_called": log.ai_attempted, "admitted": admitted,
+                             "admitted_and_truly_right": true_match, "result": result,
+                             "questions": log.questions_asked,
+                             "reason": adm.reason if adm else "; ".join(log.notes)})
+    n = len(rows)
+    pct = lambda k: round(100 * sum(bool(r[k]) for r in rows) / n, 1)  # noqa: E731
+    res = lambda k: round(100 * sum(r["result"] == k for r in rows) / n, 1)  # noqa: E731
+    admitted = [r for r in rows if r["admitted"]]
+    return {
+        "writer": writer, "hidden_answer_check": gate, "sessions": n,
+        "ai_called_pct": pct("ai_called"), "admitted_pct": pct("admitted"),
+        "admitted_rules_truly_right_pct": (
+            round(100 * sum(r["admitted_and_truly_right"] for r in admitted) / len(admitted), 1)
+            if admitted else None),
+        "final_right_pct": res("right"), "final_wrong_pct": res("wrong"),
+        "final_no_diagnosis_pct": res("no_diagnosis"),
+        "mean_questions": round(statistics.mean(r["questions"] for r in rows), 2),
+        "rows": rows,
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--writer", choices=["oracle", "cheat", "down", "gemini", "claude"], default="oracle")
+    parser.add_argument("--seeds", type=int, default=20)
+    args = parser.parse_args()
+    if args.writer == "claude" and not os.environ.get("ANTHROPIC_API_KEY"):
+        sys.exit("Set ANTHROPIC_API_KEY first (see .env.example).")
+    if args.writer == "gemini" and not os.environ.get("GEMINI_API_KEY"):
+        sys.exit("Set GEMINI_API_KEY first (see .env.example). Nothing was run.")
+
+    results = {("on" if gate else "off"): run(args.writer, args.seeds, gate) for gate in (True, False)}
+    OUT.mkdir(exist_ok=True)
+    (OUT / f"ai_results_{args.writer}.json").write_text(json.dumps(results, indent=2))
+
+    keys = ["sessions", "ai_called_pct", "admitted_pct", "admitted_rules_truly_right_pct",
+            "final_right_pct", "final_wrong_pct", "final_no_diagnosis_pct", "mean_questions"]
+    print(f"\nAI rule-writer: {args.writer}   (13 hidden rules x {args.seeds} simulated students)")
+    print("| Hidden-answer check | " + " | ".join(keys) + " |")
+    print("|" + "---|" * (len(keys) + 1))
+    for name, r in results.items():
+        print(f"| {name} | " + " | ".join(str(r[k]) for k in keys) + " |")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,461 @@
+{
+  "seeds_per_rule": 200,
+  "question_choice": {
+    "disagreement_slip0.0": {
+      "sessions": 3000,
+      "right_pct": 100.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 0.0,
+      "mean_questions": 4.84,
+      "median_questions": 4.0
+    },
+    "random_slip0.0": {
+      "sessions": 3000,
+      "right_pct": 97.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 3.0,
+      "mean_questions": 6.52,
+      "median_questions": 6.0
+    },
+    "disagreement_slip0.1": {
+      "sessions": 3000,
+      "right_pct": 94.5,
+      "wrong_pct": 0.3,
+      "false_all_clear_pct": 0.3,
+      "no_diagnosis_pct": 4.9,
+      "mean_questions": 5.83,
+      "median_questions": 5.0
+    },
+    "random_slip0.1": {
+      "sessions": 3000,
+      "right_pct": 89.8,
+      "wrong_pct": 0.4,
+      "false_all_clear_pct": 0.3,
+      "no_diagnosis_pct": 9.5,
+      "mean_questions": 7.43,
+      "median_questions": 7.0
+    }
+  },
+  "unknown_rules": {
+    "A: one prediction, any question": {
+      "sessions": 2600,
+      "right_pct": 0.0,
+      "wrong_pct": 31.0,
+      "false_all_clear_pct": 30.8,
+      "no_diagnosis_pct": 38.2,
+      "mean_questions": 5.57,
+      "median_questions": 5.0
+    },
+    "B: A + re-test misses, new kinds": {
+      "sessions": 2600,
+      "right_pct": 0.0,
+      "wrong_pct": 5.0,
+      "false_all_clear_pct": 27.0,
+      "no_diagnosis_pct": 68.0,
+      "mean_questions": 4.93,
+      "median_questions": 5.0
+    },
+    "C: B + all kinds before all-clear": {
+      "sessions": 2600,
+      "right_pct": 0.0,
+      "wrong_pct": 5.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 95.0,
+      "mean_questions": 6.01,
+      "median_questions": 6.0
+    },
+    "D: C + two predictions": {
+      "sessions": 2600,
+      "right_pct": 0.0,
+      "wrong_pct": 0.8,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 99.2,
+      "mean_questions": 6.14,
+      "median_questions": 6.0
+    },
+    "E: D + kinds chosen evenly (default)": {
+      "sessions": 2600,
+      "right_pct": 0.0,
+      "wrong_pct": 3.7,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 96.3,
+      "mean_questions": 6.13,
+      "median_questions": 6.0
+    }
+  },
+  "known_rules_by_confirm": {
+    "A: one prediction, any question": {
+      "sessions": 3000,
+      "right_pct": 98.8,
+      "wrong_pct": 0.2,
+      "false_all_clear_pct": 0.5,
+      "no_diagnosis_pct": 0.5,
+      "mean_questions": 4.37,
+      "median_questions": 4.0
+    },
+    "B: A + re-test misses, new kinds": {
+      "sessions": 3000,
+      "right_pct": 95.9,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.4,
+      "no_diagnosis_pct": 3.7,
+      "mean_questions": 4.27,
+      "median_questions": 4.0
+    },
+    "C: B + all kinds before all-clear": {
+      "sessions": 3000,
+      "right_pct": 95.6,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.3,
+      "no_diagnosis_pct": 4.0,
+      "mean_questions": 4.89,
+      "median_questions": 4.0
+    },
+    "D: C + two predictions": {
+      "sessions": 3000,
+      "right_pct": 95.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.3,
+      "no_diagnosis_pct": 4.7,
+      "mean_questions": 5.82,
+      "median_questions": 5.0
+    },
+    "E: D + kinds chosen evenly (default)": {
+      "sessions": 3000,
+      "right_pct": 94.5,
+      "wrong_pct": 0.3,
+      "false_all_clear_pct": 0.3,
+      "no_diagnosis_pct": 4.9,
+      "mean_questions": 5.83,
+      "median_questions": 5.0
+    }
+  },
+  "extra_hidden_rules_set1_before_fix": {
+    "ALL SIX": {
+      "sessions": 1200,
+      "right_pct": 0.0,
+      "wrong_pct": 16.7,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 83.3,
+      "mean_questions": 5.71,
+      "median_questions": 5.0
+    },
+    "held_int_larger_size_sign_on_subtract": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 100.0,
+      "mean_questions": 8.97,
+      "median_questions": 9.0
+    },
+    "held_int_any_negative_add_sizes_negative": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 100.0,
+      "mean_questions": 5,
+      "median_questions": 5.0
+    },
+    "held_int_minus_negative_flips_everything": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 100.0,
+      "mean_questions": 6.27,
+      "median_questions": 6.0
+    },
+    "held_frac_add_tops_keep_smaller_bottom": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 100.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 0.0,
+      "mean_questions": 4,
+      "median_questions": 4.0
+    },
+    "held_frac_cross_multiply_tops_add_bottoms": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 100.0,
+      "mean_questions": 5,
+      "median_questions": 5.0
+    },
+    "held_frac_scale_first_top_only": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 100.0,
+      "mean_questions": 5,
+      "median_questions": 5.0
+    }
+  },
+  "extra_hidden_rules_set1_after_fix": {
+    "ALL SIX": {
+      "sessions": 1200,
+      "right_pct": 0.0,
+      "wrong_pct": 9.3,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 90.7,
+      "mean_questions": 5.67,
+      "median_questions": 5.0
+    },
+    "held_int_larger_size_sign_on_subtract": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 28.5,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 71.5,
+      "mean_questions": 6.22,
+      "median_questions": 6.0
+    },
+    "held_int_any_negative_add_sizes_negative": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 7.5,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 92.5,
+      "mean_questions": 5.79,
+      "median_questions": 5.0
+    },
+    "held_int_minus_negative_flips_everything": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 100.0,
+      "mean_questions": 6.27,
+      "median_questions": 6.0
+    },
+    "held_frac_add_tops_keep_smaller_bottom": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 20.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 80.0,
+      "mean_questions": 5.74,
+      "median_questions": 6.0
+    },
+    "held_frac_cross_multiply_tops_add_bottoms": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 100.0,
+      "mean_questions": 5,
+      "median_questions": 5.0
+    },
+    "held_frac_scale_first_top_only": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 100.0,
+      "mean_questions": 5,
+      "median_questions": 5.0
+    }
+  },
+  "extra_hidden_rules_set2": {
+    "ALL SIX": {
+      "sessions": 1200,
+      "right_pct": 0.0,
+      "wrong_pct": 11.3,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 88.7,
+      "mean_questions": 6.08,
+      "median_questions": 5.0
+    },
+    "held2_int_signs_differ_add_keeps_first_sign": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 100.0,
+      "mean_questions": 8.94,
+      "median_questions": 9.0
+    },
+    "held2_int_cannot_go_below_zero": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 100.0,
+      "mean_questions": 5.51,
+      "median_questions": 6.0
+    },
+    "held2_int_negative_minus_positive_subtracts_sizes": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 100.0,
+      "mean_questions": 7.51,
+      "median_questions": 7.0
+    },
+    "held2_frac_add_both_only_when_bottoms_differ": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 68.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 32.0,
+      "mean_questions": 4.54,
+      "median_questions": 4.0
+    },
+    "held2_frac_common_bottom_then_adds_bottoms": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 100.0,
+      "mean_questions": 5.0,
+      "median_questions": 5.0
+    },
+    "held2_frac_flips_second_and_multiplies": {
+      "sessions": 200,
+      "right_pct": 0.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 100.0,
+      "mean_questions": 5,
+      "median_questions": 5.0
+    }
+  },
+  "slip_sweep": {
+    "slip0.0": {
+      "sessions": 3000,
+      "right_pct": 100.0,
+      "wrong_pct": 0.0,
+      "false_all_clear_pct": 0.0,
+      "no_diagnosis_pct": 0.0,
+      "mean_questions": 4.84,
+      "median_questions": 4.0
+    },
+    "slip0.1": {
+      "sessions": 3000,
+      "right_pct": 94.5,
+      "wrong_pct": 0.3,
+      "false_all_clear_pct": 0.3,
+      "no_diagnosis_pct": 4.9,
+      "mean_questions": 5.83,
+      "median_questions": 5.0
+    },
+    "slip0.2": {
+      "sessions": 3000,
+      "right_pct": 75.1,
+      "wrong_pct": 0.4,
+      "false_all_clear_pct": 0.4,
+      "no_diagnosis_pct": 24.1,
+      "mean_questions": 6.5,
+      "median_questions": 6.0
+    },
+    "slip0.3": {
+      "sessions": 3000,
+      "right_pct": 46.8,
+      "wrong_pct": 0.6,
+      "false_all_clear_pct": 0.3,
+      "no_diagnosis_pct": 52.4,
+      "mean_questions": 6.8,
+      "median_questions": 6.0
+    }
+  },
+  "guessers": {
+    "sessions": 1600,
+    "right_pct": 0.0,
+    "wrong_pct": 10.3,
+    "false_all_clear_pct": 9.4,
+    "no_diagnosis_pct": 80.3,
+    "mean_questions": 7.08,
+    "median_questions": 6.0
+  },
+  "trap": {
+    "worksheet_size": 5,
+    "rules": [
+      {
+        "rule": "int_ignore_signs_subtract",
+        "perfect_worksheets_pct": 100.0,
+        "exposed_pct": 100.0,
+        "mean_extra_questions": 4.55
+      },
+      {
+        "rule": "int_minus_negative_is_minus",
+        "perfect_worksheets_pct": 100.0,
+        "exposed_pct": 100.0,
+        "mean_extra_questions": 5
+      },
+      {
+        "rule": "int_plus_negative_is_plus",
+        "perfect_worksheets_pct": 100.0,
+        "exposed_pct": 100.0,
+        "mean_extra_questions": 5
+      },
+      {
+        "rule": "int_two_negatives_make_positive",
+        "perfect_worksheets_pct": 100.0,
+        "exposed_pct": 100.0,
+        "mean_extra_questions": 5
+      },
+      {
+        "rule": "int_always_positive",
+        "perfect_worksheets_pct": 100.0,
+        "exposed_pct": 100.0,
+        "mean_extra_questions": 4
+      },
+      {
+        "rule": "int_sign_of_first",
+        "perfect_worksheets_pct": 100.0,
+        "exposed_pct": 100.0,
+        "mean_extra_questions": 5
+      },
+      {
+        "rule": "int_leading_minus_covers_all",
+        "perfect_worksheets_pct": 100.0,
+        "exposed_pct": 100.0,
+        "mean_extra_questions": 4
+      },
+      {
+        "rule": "frac_add_tops_add_bottoms",
+        "perfect_worksheets_pct": 0.0,
+        "exposed_pct": null,
+        "mean_extra_questions": null
+      },
+      {
+        "rule": "frac_add_tops_keep_larger_bottom",
+        "perfect_worksheets_pct": 100.0,
+        "exposed_pct": 100.0,
+        "mean_extra_questions": 3
+      },
+      {
+        "rule": "frac_add_tops_multiply_bottoms",
+        "perfect_worksheets_pct": 0.0,
+        "exposed_pct": null,
+        "mean_extra_questions": null
+      },
+      {
+        "rule": "frac_common_bottom_no_scaling",
+        "perfect_worksheets_pct": 100.0,
+        "exposed_pct": 100.0,
+        "mean_extra_questions": 3
+      },
+      {
+        "rule": "frac_multiplies_instead",
+        "perfect_worksheets_pct": 0.0,
+        "exposed_pct": null,
+        "mean_extra_questions": null
+      },
+      {
+        "rule": "frac_add_tops_keep_first_bottom",
+        "perfect_worksheets_pct": 100.0,
+        "exposed_pct": 100.0,
+        "mean_extra_questions": 3
+      }
+    ]
+  },
+  "seconds": 111.7
+}

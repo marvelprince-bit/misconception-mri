@@ -1,0 +1,2 @@
+# The engine, tests, demo and evaluation use only the Python standard library (Python 3.10+).
+# Add UI packages here when the interface is built.
