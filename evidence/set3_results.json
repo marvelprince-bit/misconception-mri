@@ -1,0 +1,101 @@
+{
+ "h3_int_signs_differ_add_sizes_sign_of_larger": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 6.17,
+  "median_questions": 6.0
+ },
+ "h3_int_minus_negative_answer_negative": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 5.25,
+  "median_questions": 5.0
+ },
+ "h3_frac_cross_tops_add_bottoms": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 5,
+  "median_questions": 5.0
+ },
+ "h3_frac_multiply_tops_add_bottoms": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 5,
+  "median_questions": 5.0
+ },
+ "h3_sub_borrow_ten": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 1.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 99.0,
+  "mean_questions": 5.41,
+  "median_questions": 5.0
+ },
+ "h3_sub_regroup_keeps_whole": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 5.05,
+  "median_questions": 5.0
+ },
+ "h3_mul_whole_adds_to_top": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 9.0,
+  "no_diagnosis_pct": 91.0,
+  "mean_questions": 4.84,
+  "median_questions": 5.0
+ },
+ "h3_mul_adds_across": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 5,
+  "median_questions": 5.0
+ },
+ "h3_div_tops_keep_first_bottom": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 5,
+  "median_questions": 5.0
+ },
+ "h3_div_times_second_bottom": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 5.08,
+  "median_questions": 5.0
+ },
+ "ALL": {
+  "sessions": 2000,
+  "right_pct": 0.0,
+  "wrong_pct": 0.1,
+  "false_all_clear_pct": 0.9,
+  "no_diagnosis_pct": 99.0,
+  "mean_questions": 5.18,
+  "median_questions": 5.0
+ }
+}

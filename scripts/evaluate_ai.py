@@ -97,7 +97,7 @@ def main() -> None:
 
     keys = ["sessions", "ai_called_pct", "admitted_pct", "admitted_rules_truly_right_pct",
             "final_right_pct", "final_wrong_pct", "final_no_diagnosis_pct", "mean_questions"]
-    print(f"\nAI rule-writer: {args.writer}   (13 hidden rules x {args.seeds} simulated students)")
+    print(f"\nAI rule-writer: {args.writer}   ({sum(1 for d in DOMAINS for r in library(d) if not r.is_correct)} hidden rules x {args.seeds} simulated students)")
     print("| Hidden-answer check | " + " | ".join(keys) + " |")
     print("|" + "---|" * (len(keys) + 1))
     for name, r in results.items():
