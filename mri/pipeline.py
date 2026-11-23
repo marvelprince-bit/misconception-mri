@@ -74,7 +74,8 @@ def run_session(session: Session, student, ask=None, given: list[Problem] | None
         log.ai_attempted = True
         explored = 0
         while session.wrong_answers() < WRONG_ANSWERS_FOR_AI and explored < MAX_EXPLORE_QUESTIONS:
-            question = session.explore_question()
+            question = session.explore_question(budget_left=MAX_EXPLORE_QUESTIONS - explored,
+                                                target=WRONG_ANSWERS_FOR_AI)
             if question is None:
                 break
             put(question)

@@ -346,26 +346,50 @@ class Session:
         return Question(problem, "confirm", predicted=rule.predict(problem), predicted_rule=rule.id,
                         why="a kind of question not tested yet")
 
+    def _contested_shapes(self) -> set[str]:
+        """Shapes with at least one question where the known methods (including any
+        AI-written rule) do not all give the same answer."""
+        key = tuple(self.rules)
+        if getattr(self, "_contested_cache", (None,))[0] != key:
+            live = {shape(p) for p in self.pool if self.contestedness(p) > 1}
+            self._contested_cache = (key, live)
+        return self._contested_cache[1]
+
     def untested_shapes(self) -> set[str]:
+        """Contested shapes not tested yet (the ones an AI-written rule is checked on)."""
         seen = {shape(o.problem) for o in self.observations}
-        return {shape(p) for p in self.pool} - seen
+        return self._contested_shapes() - seen
 
     def _shape_coverage_question(self, rule: Rule) -> Question | None:
-        """A question of a shape not tested yet, chosen where the fewest other rules agree
-        with this rule's prediction (the most contested question available)."""
+        """For an AI-written rule: a question of a shape not tested yet, riskiest first.
+
+        Risk order: (1) shapes where the rule claims the CORRECT answer, because a rule
+        copied only from the student's wrong answers is most likely to be wrong there;
+        (2) the most contested question; (3) shapes close to ones the student got wrong.
+        """
         asked = self._asked()
         seen = {shape(o.problem) for o in self.observations}
-        k = self.rules.index(rule)
-        options = []
-        for (split, _), indices in self._buckets.items():
-            shared = sum(1 for j, g in enumerate(split) if g == split[k] and j != k)
-            for i in indices:
-                p = self.pool[i]
-                if p not in asked and shape(p) not in seen:
-                    options.append((shared, self.rng.random(), p))
-        if not options:
+        wrong = self._wrong_shape_counts()
+        correct = self.correct
+        live = self._contested_shapes()
+        best, best_key = [], None
+        for p in self.pool:
+            if p in asked:
+                continue
+            sh = shape(p)
+            if sh in seen or sh not in live:
+                continue
+            if self.contestedness(p) < 2:
+                continue  # every known method agrees here: the answer cannot separate them
+            claims_correct = correct is not None and rule.predict(p) == correct.predict(p)
+            key = (claims_correct, self.contestedness(p), self._closeness(sh, wrong))
+            if best_key is None or key > best_key:
+                best, best_key = [p], key
+            elif key == best_key:
+                best.append(p)
+        if not best:
             return None
-        _, _, problem = min(options, key=lambda o: (o[0], o[1]))
+        problem = self.rng.choice(best)
         return Question(problem, "confirm", predicted=rule.predict(problem), predicted_rule=rule.id,
                         why=f"checking an AI-written rule on a shape not tested yet ({shape(problem)})")
 
@@ -410,17 +434,20 @@ class Session:
             elif rule.is_correct and self.clear_needs_all_kinds:
                 question = self._coverage_question(rule)
                 confirmed = question is None
+            elif self._needs_every_kind(rule):
+                # AI-written rule: check every untested shape FIRST, riskiest first, so a
+                # rule that only copied part of the student's procedure fails early. Kinds
+                # alone are too coarse: a kind can be "tested" by a question where the
+                # student's wrong rule happened to give the right answer. Then the usual
+                # predictions, if the shape checks did not already supply them.
+                question = self._shape_coverage_question(rule)
+                confirmed = False
+                if question is None:
+                    confirmed = self._confirm_hits(rule) >= self.confirmations
+                    question = None if confirmed else self._confirm_question(rule)
             else:
                 confirmed = self._confirm_hits(rule) >= self.confirmations
                 question = None if confirmed else self._confirm_question(rule)
-                if question is None and self._needs_every_kind(rule):
-                    # Check the rule on each untested shape (a kind, split by which number
-                    # is larger in size), using the most contested question of that shape.
-                    # Kinds alone are too coarse: a kind can be "tested" by a question where
-                    # the student's wrong rule happened to give the right answer.
-                    question = self._shape_coverage_question(rule)
-                    if question is not None:
-                        confirmed = False
             if enough and question is None:
                 if rule.is_correct:
                     message = (f"No known wrong rule found. Correct on {cover['kinds_tested']} of "
@@ -453,28 +480,63 @@ class Session:
         correct = self.correct
         return sum(1 for o in self.observations if correct.predict(o.problem) != o.answer)
 
-    def explore_question(self) -> Question | None:
-        """When no known rule fits: collect more of the student's wrong answers.
+    def contestedness(self, problem: Problem) -> int:
+        """How many different answers the known rules (and the correct method) give here.
+        High values are the questions where wrong procedures split apart."""
+        return len(set(_split(tuple(self.rules), problem)))
 
-        The AI rule-writer needs several wrong answers to work from. This picks a
-        look-alike of a question the student got wrong, or a kind not tested yet,
-        whichever has been asked least.
-        """
+    def _wrong_shape_counts(self) -> dict[str, int]:
         correct = self.correct
-        asked = self._asked()
-        wrong_shapes = {shape(o.problem) for o in self.observations
-                        if correct.predict(o.problem) != o.answer}
-        seen_kinds = self.kinds_tested()
-        times: dict[str, int] = {}
+        counts: dict[str, int] = {}
         for o in self.observations:
-            times[shape(o.problem)] = times.get(shape(o.problem), 0) + 1
-        fresh = [p for p in self.pool
-                 if p not in asked and (shape(p) in wrong_shapes or kind(p) not in seen_kinds)]
-        if not fresh:
+            if correct.predict(o.problem) != o.answer:
+                counts[shape(o.problem)] = counts.get(shape(o.problem), 0) + 1
+        return counts
+
+    @staticmethod
+    def _closeness(sh: str, wrong_shapes) -> int:
+        """Shared descriptive words with the nearest shape the student got wrong."""
+        words = set(sh.replace(",", " ").split())
+        return max((len(words & set(w.replace(",", " ").split())) for w in wrong_shapes), default=0)
+
+    def explore_question(self, budget_left: int | None = None, target: int = 4) -> Question | None:
+        """When no known rule fits: collect VARIED wrong answers for the AI rule-writer.
+
+        Prefers, in order: a shape not asked yet, shapes close to ones the student got
+        wrong, and the most contested question (where known procedures disagree most).
+        A shape already answered wrong twice is skipped: more of the same teaches the AI
+        nothing new and lets a rule copied from one shape look general.
+
+        Budget-aware: if the questions left are only just enough to reach `target` wrong
+        answers, it asks look-alikes of a shape the student already gets wrong instead,
+        so a rule that only shows up in one shape still gets enough answers for the AI.
+        """
+        asked = self._asked()
+        wrong = self._wrong_shape_counts()
+        seen = {shape(o.problem) for o in self.observations}
+        need = max(0, target - sum(wrong.values()))
+        must_collect = budget_left is not None and wrong and need >= budget_left
+        best, best_key = [], None
+        for p in self.pool:
+            if p in asked:
+                continue
+            sh = shape(p)
+            if must_collect:
+                if sh not in wrong:
+                    continue
+                key = (-wrong[sh], self.contestedness(p))  # least-asked wrong shape first
+            else:
+                if wrong.get(sh, 0) >= 2:
+                    continue
+                key = (sh not in seen, self._closeness(sh, wrong), self.contestedness(p))
+            if best_key is None or key > best_key:
+                best, best_key = [p], key
+            elif key == best_key:
+                best.append(p)
+        if not best:
             return None
-        fewest = min(times.get(shape(p), 0) for p in fresh)
-        problem = self.rng.choice([p for p in fresh if times.get(shape(p), 0) == fewest])
-        return Question(problem, "explore", why="collecting more answers to work out an unknown rule")
+        return Question(self.rng.choice(best), "explore",
+                        why="collecting varied answers to work out an unknown rule")
 
     # ---------------------------------------------------------- reporting
     def trap_report(self) -> dict:

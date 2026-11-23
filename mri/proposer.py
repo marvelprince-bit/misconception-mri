@@ -17,7 +17,7 @@ import urllib.request
 from dataclasses import dataclass
 
 from .engine import Observation
-from .problems import Problem, format_answer
+from .problems import Problem, format_answer, kind
 from .rules import Rule
 from .sandbox import SIGNATURES, UnsafeRule, compile_rule
 
@@ -42,18 +42,40 @@ class Admission:
     attempts: int = 1
 
 
+# "cross_kind" (default): hide answers from a kind the AI does not see, when possible.
+# "random": the earlier design, kept so the comparison in the tests can be re-run.
+HOLDOUT = "cross_kind"
+
+
 def split_fit_heldout(observations: list[Observation], correct: Rule, seed: int = 0,
                       ) -> tuple[list[Observation], list[Observation]] | None:
     """Hide some WRONG answers from the AI. Returns (shown, hidden), or None if too few.
 
     Hidden answers are always wrong answers: a rule cannot predict them by simply
-    doing the maths correctly.
+    doing the maths correctly. When the wrong answers span three or more kinds of
+    question, the hidden ones are taken from a kind the AI does NOT see, so the check
+    tests whether the rule generalises, not just whether it copies what it was shown.
     """
     wrong = [o for o in observations if correct.predict(o.problem) != o.answer]
     if len(wrong) < 3:
         return None
+    rng = random.Random(seed)
+    by_kind: dict[str, list[Observation]] = {}
+    for o in wrong:
+        by_kind.setdefault(kind(o.problem), []).append(o)
+    if HOLDOUT == "cross_kind" and len(by_kind) >= 3:
+        # Only when the wrong answers span 3 or more kinds, so the AI still sees at least
+        # two kinds of wrong answer and is asked to extend a pattern, not guess one.
+        # hide every wrong answer of the least-seen kind (at most 2), keep at least 2 shown
+        kinds = sorted(by_kind, key=lambda k: (len(by_kind[k]), rng.random()))
+        for k in kinds:
+            group = by_kind[k]
+            if len(group) <= 2 and len(wrong) - len(group) >= 2:
+                hidden = list(group)
+                shown = [o for o in observations if o not in hidden]
+                return shown, hidden
     k = 2 if len(wrong) >= 5 else 1
-    hidden = random.Random(seed).sample(wrong, k)
+    hidden = rng.sample(wrong, k)
     shown = [o for o in observations if o not in hidden]
     return shown, hidden
 

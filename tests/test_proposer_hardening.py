@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT))
 
 from mri import fakes  # noqa: E402
 from mri.engine import Observation  # noqa: E402
-from mri.problems import format_answer, full_pool  # noqa: E402
+from mri.problems import format_answer, full_pool, kind  # noqa: E402
 from mri.proposer import extract, propose_and_admit, split_fit_heldout  # noqa: E402
 from mri.rules import correct_rule, get_rule  # noqa: E402
 from mri.sandbox import UnsafeRule, compile_rule  # noqa: E402
@@ -165,26 +165,35 @@ class ShapeCheckForAIRules(unittest.TestCase):
     """Regression for the live Claude finding: an AI rule that copied int_sign_of_first only
     on the kinds where it saw wrong answers was diagnosed, though it is wrong on (-3) - (-5)."""
 
-    def _sessions(self, writer, mode, seeds=8):
+    def _sessions(self, writer, mode, seeds=8, holdout="cross_kind", hidden_id="int_sign_of_first",
+                  with_questions=False):
+        import mri.proposer as proposer
         from mri.engine import Session
         from mri.pipeline import run_session
         from mri.rules import library
         from mri.student import SimulatedStudent
-        hidden = get_rule("int_sign_of_first")
-        rules = [r for r in library("integers") if r.id != hidden.id]
+        hidden = get_rule(hidden_id)
+        rules = [r for r in library(hidden.domain) if r.id != hidden.id]
         out = []
-        for seed in range(seeds):
-            s = Session("integers", rules=rules, seed=seed, diagnosis_needs_all_kinds=mode)
-            log = run_session(s, SimulatedStudent(hidden, 0.0, seed=seed), ask=writer(hidden.id))
-            st = log.status
-            wrong = (st.state == "diagnosed" and
-                     any(st.rule.predict(p) != hidden.predict(p) for p in s.pool))
-            right = st.state == "diagnosed" and not wrong
-            out.append((wrong, right))
+        saved, proposer.HOLDOUT = proposer.HOLDOUT, holdout
+        try:
+            for seed in range(seeds):
+                s = Session(hidden.domain, rules=rules, seed=seed, diagnosis_needs_all_kinds=mode)
+                log = run_session(s, SimulatedStudent(hidden, 0.0, seed=seed), ask=writer(hidden.id))
+                st = log.status
+                wrong = (st.state in ("diagnosed", "no_misconception") and
+                         any(st.rule.predict(p) != hidden.predict(p) for p in s.pool))
+                right = st.state == "diagnosed" and not wrong
+                out.append((wrong, right, log.questions_asked) if with_questions else (wrong, right))
+        finally:
+            proposer.HOLDOUT = saved
         return out
 
-    def test_failure_reproduced_without_the_check(self):
-        self.assertGreater(sum(w for w, _ in self._sessions(fakes.partial, "none")), 0)
+    def test_failure_reproduced_with_both_safeguards_off(self):
+        self.assertGreater(sum(w for w, _ in self._sessions(fakes.partial, "none", holdout="random")), 0)
+
+    def test_shape_check_alone_stops_it(self):
+        self.assertEqual(sum(w for w, _ in self._sessions(fakes.partial, "ai", holdout="random")), 0)
 
     def test_partial_ai_rule_never_named_with_the_check(self):
         self.assertEqual(sum(w for w, _ in self._sessions(fakes.partial, "ai")), 0)
@@ -196,3 +205,41 @@ class ShapeCheckForAIRules(unittest.TestCase):
         from mri.engine import Session
         with self.assertRaises(ValueError):
             Session("integers", diagnosis_needs_all_kinds="sometimes")
+
+
+class Efficiency(unittest.TestCase):
+    """Regression for the live Claude run on int_sign_of_first: admitted but wrong, then
+    20 questions to reach 'no diagnosis'. Baseline before the change (stand-in writer that
+    reproduces it, 20 seeds): mean 18.15 questions, max 21, never a false diagnosis."""
+
+    def test_sign_of_first_resolved_safely_in_fewer_questions(self):
+        runs = ShapeCheckForAIRules()._sessions(fakes.partial, "ai", seeds=20, with_questions=True)
+        self.assertEqual(sum(w for w, _, _ in runs), 0)
+        qs = [q for _, _, q in runs]
+        self.assertLess(sum(qs) / len(qs), 16.0)
+        self.assertLess(max(qs), 20)
+
+    def test_exploration_collects_wrong_answers_from_more_than_one_kind(self):
+        from mri.engine import Session
+        from mri.pipeline import MAX_EXPLORE_QUESTIONS, WRONG_ANSWERS_FOR_AI
+        from mri.problems import parse_problem_text
+        from mri.rules import library
+        hidden = get_rule("int_sign_of_first")
+        s = Session("integers", rules=[r for r in library("integers") if r.id != hidden.id], seed=0)
+        for q in ("8 + (-9)", "3 + (-6)"):  # two wrong answers, both of one shape
+            p = parse_problem_text("integers", q)
+            s.record(p, hidden.predict(p))
+        for left in range(MAX_EXPLORE_QUESTIONS, 0, -1):
+            q = s.explore_question(budget_left=left, target=WRONG_ANSWERS_FOR_AI)
+            s.record(q.problem, hidden.predict(q.problem))
+        wrong_kinds = {kind(o.problem) for o in s.observations
+                       if s.correct.predict(o.problem) != o.answer}
+        self.assertGreaterEqual(len(wrong_kinds), 2)
+
+    def test_single_shape_rule_still_gets_enough_wrong_answers(self):
+        runs = ShapeCheckForAIRules()._sessions(fakes.oracle, "ai", seeds=5, hidden_id="mul_whole_scales_both")
+        self.assertEqual(sum(r for _, r in runs), 5)
+
+    def test_good_ai_rule_still_confirmed(self):
+        runs = ShapeCheckForAIRules()._sessions(fakes.oracle, "ai", seeds=5)
+        self.assertEqual(sum(r for _, r in runs), 5)
