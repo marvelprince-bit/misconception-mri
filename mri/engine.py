@@ -107,9 +107,16 @@ class Session:
         # are earlier, weaker designs kept so the comparison in evidence/ can be re-run.
         confirm_mode: str = "novel",  # "novel" | "novel_prefer_solo" | "solo"
         clear_needs_all_kinds: bool = True,  # test every kind before saying "no misconception"
+        # Before NAMING a wrong rule, must the student also have been checked on every kind
+        # of question? "ai": only for AI-written rules (default), "all": every rule, "none".
+        # An AI-written rule may copy the student only where it saw wrong answers; a kind
+        # where the student's rule happened to look correct can then hide the difference.
+        diagnosis_needs_all_kinds: str = "ai",
     ):
         if policy not in ("disagreement", "random"):
             raise ValueError("policy must be 'disagreement' or 'random'")
+        if diagnosis_needs_all_kinds not in ("ai", "all", "none"):
+            raise ValueError("diagnosis_needs_all_kinds must be 'ai', 'all' or 'none'")
         if confirm_mode not in ("novel", "novel_prefer_solo", "solo"):
             raise ValueError("confirm_mode must be 'novel', 'novel_prefer_solo' or 'solo'")
         self.domain = domain
@@ -129,6 +136,7 @@ class Session:
         self.confirmations = confirmations
         self.confirm_mode = confirm_mode
         self.clear_needs_all_kinds = clear_needs_all_kinds
+        self.diagnosis_needs_all_kinds = diagnosis_needs_all_kinds
         self.observations: list[Observation] = []
         self.all_kinds = sorted({kind(p) for p in self.pool})
         self._rebuild()
@@ -338,6 +346,33 @@ class Session:
         return Question(problem, "confirm", predicted=rule.predict(problem), predicted_rule=rule.id,
                         why="a kind of question not tested yet")
 
+    def untested_shapes(self) -> set[str]:
+        seen = {shape(o.problem) for o in self.observations}
+        return {shape(p) for p in self.pool} - seen
+
+    def _shape_coverage_question(self, rule: Rule) -> Question | None:
+        """A question of a shape not tested yet, chosen where the fewest other rules agree
+        with this rule's prediction (the most contested question available)."""
+        asked = self._asked()
+        seen = {shape(o.problem) for o in self.observations}
+        k = self.rules.index(rule)
+        options = []
+        for (split, _), indices in self._buckets.items():
+            shared = sum(1 for j, g in enumerate(split) if g == split[k] and j != k)
+            for i in indices:
+                p = self.pool[i]
+                if p not in asked and shape(p) not in seen:
+                    options.append((shared, self.rng.random(), p))
+        if not options:
+            return None
+        _, _, problem = min(options, key=lambda o: (o[0], o[1]))
+        return Question(problem, "confirm", predicted=rule.predict(problem), predicted_rule=rule.id,
+                        why=f"checking an AI-written rule on a shape not tested yet ({shape(problem)})")
+
+    def _needs_every_kind(self, rule: Rule) -> bool:
+        mode = self.diagnosis_needs_all_kinds
+        return not rule.is_correct and (mode == "all" or (mode == "ai" and rule.source == "ai"))
+
     def _confirm_hits(self, rule: Rule) -> int:
         """Predictions made before the answer that came true. For a wrong rule, only
         predictions that differ from the correct answer count: matching the correct
@@ -378,6 +413,14 @@ class Session:
             else:
                 confirmed = self._confirm_hits(rule) >= self.confirmations
                 question = None if confirmed else self._confirm_question(rule)
+                if question is None and self._needs_every_kind(rule):
+                    # Check the rule on each untested shape (a kind, split by which number
+                    # is larger in size), using the most contested question of that shape.
+                    # Kinds alone are too coarse: a kind can be "tested" by a question where
+                    # the student's wrong rule happened to give the right answer.
+                    question = self._shape_coverage_question(rule)
+                    if question is not None:
+                        confirmed = False
             if enough and question is None:
                 if rule.is_correct:
                     message = (f"No known wrong rule found. Correct on {cover['kinds_tested']} of "

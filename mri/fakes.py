@@ -177,3 +177,32 @@ def messy(rule_id: str):
         return ("Sure! Here is the procedure.\nDESCRIPTION: the student's procedure\n```py\n"
                 + typed + "\n" + rest + "\n```\nThis function captures the pattern in the answers.")
     return ask
+
+
+def partial(rule_id: str):
+    """Reproduces the failure found in the live Claude run (int_sign_of_first): the writer
+    copies the student's rule ONLY on the kinds of question where it saw wrong answers,
+    and does the maths correctly everywhere else. Its rule fits every answer it was
+    shown, yet is wrong on kinds where the student's rule happened to look correct.
+    Integers only."""
+    from .problems import kind, parse_answer, parse_problem_text
+
+    body = REFERENCE_CODE[rule_id].split("\n", 1)[1]
+
+    def ask(prompt: str) -> str:
+        wrong_kinds = set()
+        for line in prompt.splitlines():
+            m = re.match(r"^\s+(.+?)\s+student wrote (.+?)\s+\(correct: (.+?)\)", line)
+            if m and parse_answer(m.group(2)) != parse_answer(m.group(3)):
+                wrong_kinds.add(kind(parse_problem_text("integers", m.group(1))))
+        conds = []
+        for k in sorted(wrong_kinds):
+            sa, opw, sb = k.split()
+            ca = "a < 0" if sa == "negative" else "a >= 0"
+            cb = "b < 0" if sb == "negative" else "b >= 0"
+            conds.append(f"({ca} and op == '{'+' if opw == 'plus' else '-'}' and {cb})")
+        indented = "\n".join("    " + ln for ln in body.split("\n"))
+        code = ("def rule(a, op, b):\n    if " + (" or ".join(conds) or "False") + ":\n"
+                + indented + "\n    if op == '+':\n        return a + b\n    return a - b")
+        return f"DESCRIPTION: copies the pattern where answers were wrong\n```python\n{code}\n```"
+    return ask

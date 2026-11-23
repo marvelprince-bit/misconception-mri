@@ -35,17 +35,24 @@ from mri.student import SimulatedStudent  # noqa: E402
 OUT = Path(__file__).resolve().parent.parent / "evidence"
 
 
+SHAPE_CHECK = "ai"
+
+
 def run(writer: str, seeds: int, gate: bool, domains=DOMAINS) -> dict:
     rows = []
     for domain in domains:
+        if writer == "partial" and domain != "integers":
+            continue  # the partial stand-in is written for integers only
         for hidden in library(domain):
             if hidden.is_correct:
                 continue
             rules = [r for r in library(domain) if r.id != hidden.id]
             for seed in range(seeds):
                 ask = {"oracle": fakes.oracle(hidden.id), "cheat": fakes.cheat, "down": fakes.down,
-                       "messy": fakes.messy(hidden.id)}.get(writer) or make_proposer(writer)
-                session = Session(domain, rules=rules, seed=seed)
+                       "messy": fakes.messy(hidden.id),
+                       "partial": fakes.partial(hidden.id) if writer == "partial" else None,
+                       }.get(writer) or make_proposer(writer)
+                session = Session(domain, rules=rules, seed=seed, diagnosis_needs_all_kinds=SHAPE_CHECK)
                 log = run_session(session, SimulatedStudent(hidden, 0.0, seed=seed), ask=ask, gate=gate)
                 adm = log.admission
                 admitted = bool(adm and adm.admitted)
@@ -86,34 +93,42 @@ def run(writer: str, seeds: int, gate: bool, domains=DOMAINS) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--writer", choices=["oracle", "cheat", "down", "messy", "gemini", "claude"],
+    parser.add_argument("--writer", choices=["oracle", "cheat", "down", "messy", "partial", "gemini", "claude"],
                         default="oracle")
     parser.add_argument("--seeds", type=int, default=20)
     parser.add_argument("--domain", choices=list(DOMAINS), help="test one topic only (fewer API calls)")
+    parser.add_argument("--shape-check", choices=["ai", "none"], default="ai",
+                        help="check AI-written rules on every untested shape before naming them "
+                             "(default); 'none' reproduces the earlier design for comparison")
     parser.add_argument("--both-gates", action="store_true",
                         help="also run with the hidden-answer check off (default for stand-ins; "
                              "doubles the calls for a live model)")
     args = parser.parse_args()
     live = args.writer in ("gemini", "claude")
+    global SHAPE_CHECK
+    SHAPE_CHECK = args.shape_check
     if args.writer == "claude" and not os.environ.get("ANTHROPIC_API_KEY"):
         sys.exit("Set ANTHROPIC_API_KEY first (see .env.example).")
     if args.writer == "gemini" and not os.environ.get("GEMINI_API_KEY"):
         sys.exit("Set GEMINI_API_KEY first (see .env.example). Nothing was run.")
 
     OUT.mkdir(exist_ok=True)
-    raw = OUT / f"ai_raw_{args.writer}.jsonl"
+    tag = args.writer + ("" if args.shape_check == "ai" else "_noshapecheck")
+    raw = OUT / f"ai_raw_{tag}.jsonl"
     raw.write_text("")  # every prompt, reply, extracted code and verdict; no keys
     os.environ["MRI_RAW_LOG"] = str(raw)
     gates = (True, False) if (args.both_gates or not live) else (True,)
     domains = (args.domain,) if args.domain else DOMAINS
     results = {("on" if gate else "off"): run(args.writer, args.seeds, gate, domains) for gate in gates}
-    (OUT / f"ai_results_{args.writer}.json").write_text(json.dumps(results, indent=2))
+    (OUT / f"ai_results_{tag}.json").write_text(json.dumps(results, indent=2))
 
     keys = ["sessions", "ai_called_pct", "admitted_pct", "admitted_rules_truly_right_pct",
             "final_right_pct", "final_wrong_pct", "final_no_diagnosis_pct", "mean_questions",
             "repair_used_pct", "admitted_after_repair_pct"]
-    n_rules = sum(1 for d in domains for r in library(d) if not r.is_correct)
-    print(f"\nAI rule-writer: {args.writer}   ({n_rules} hidden rules x {args.seeds} simulated students)")
+    n_rules = sum(1 for d in domains for r in library(d) if not r.is_correct
+                  and not (args.writer == "partial" and d != "integers"))
+    print(f"\nAI rule-writer: {args.writer}, shape check {args.shape_check}   "
+          f"({n_rules} hidden rules x {args.seeds} simulated students)")
     print(f"Raw prompts and replies: {raw}")
     print("| Hidden-answer check | " + " | ".join(keys) + " |")
     print("|" + "---|" * (len(keys) + 1))

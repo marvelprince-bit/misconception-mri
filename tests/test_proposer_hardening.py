@@ -159,3 +159,40 @@ class ClaudeRequest(unittest.TestCase):
         with self.assertRaises(ProposerUnavailable) as ctx:
             self._call({"content": [{"type": "thinking", "thinking": "..."}], "stop_reason": "max_tokens"})
         self.assertIn("max_tokens", str(ctx.exception))
+
+
+class ShapeCheckForAIRules(unittest.TestCase):
+    """Regression for the live Claude finding: an AI rule that copied int_sign_of_first only
+    on the kinds where it saw wrong answers was diagnosed, though it is wrong on (-3) - (-5)."""
+
+    def _sessions(self, writer, mode, seeds=8):
+        from mri.engine import Session
+        from mri.pipeline import run_session
+        from mri.rules import library
+        from mri.student import SimulatedStudent
+        hidden = get_rule("int_sign_of_first")
+        rules = [r for r in library("integers") if r.id != hidden.id]
+        out = []
+        for seed in range(seeds):
+            s = Session("integers", rules=rules, seed=seed, diagnosis_needs_all_kinds=mode)
+            log = run_session(s, SimulatedStudent(hidden, 0.0, seed=seed), ask=writer(hidden.id))
+            st = log.status
+            wrong = (st.state == "diagnosed" and
+                     any(st.rule.predict(p) != hidden.predict(p) for p in s.pool))
+            right = st.state == "diagnosed" and not wrong
+            out.append((wrong, right))
+        return out
+
+    def test_failure_reproduced_without_the_check(self):
+        self.assertGreater(sum(w for w, _ in self._sessions(fakes.partial, "none")), 0)
+
+    def test_partial_ai_rule_never_named_with_the_check(self):
+        self.assertEqual(sum(w for w, _ in self._sessions(fakes.partial, "ai")), 0)
+
+    def test_correct_ai_rule_still_confirmed_with_the_check(self):
+        self.assertGreaterEqual(sum(r for _, r in self._sessions(fakes.oracle, "ai")), 6)
+
+    def test_setting_is_validated(self):
+        from mri.engine import Session
+        with self.assertRaises(ValueError):
+            Session("integers", diagnosis_needs_all_kinds="sometimes")

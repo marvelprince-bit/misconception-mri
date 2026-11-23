@@ -6,7 +6,7 @@ Built for the Global AI Builder's Challenge (Devpost, November 21 to 28, 2026).
 
 Topics: adding and subtracting negative numbers; adding, subtracting (including mixed numbers), multiplying and dividing fractions.
 
-**Status, 23 Nov 2026:** engine, AI rule-writer (tested with stand-ins; first live Gemini test run by Emmanuel), demo, 52 unit tests and four evaluations work. Not yet done: a run with a live AI model, a user interface, and any use by real students. Every number below comes from simulated students or from the published MaE examples.
+**Status, 23 Nov 2026:** engine, AI rule-writer (tested with stand-ins; first live Gemini test run by Emmanuel), demo, 58 unit tests and four evaluations work. Not yet done: a run with a live AI model, a user interface, and any use by real students. Every number below comes from simulated students or from the published MaE examples.
 
 ## The problem
 
@@ -27,6 +27,8 @@ Research calls this the *correct answer trap*: AI tutors under-detect misconcept
    - must reproduce every answer it was shown,
    - must also predict wrong answers that were hidden from it,
    - and then must pass the same prediction tests as any other rule.
+
+   - and, before it can be named as the diagnosis, must match the student on **every shape of question not yet tested** (a kind of question, split by which number is larger in size), using the most contested question of each shape. This was added after a live Claude run: Claude wrote a rule that copied the student's "sign of the first number" rule on addition but did subtraction normally. It fit all 10 answers it was shown and a hidden one, because the student's subtraction answers happened to look correct, yet it is wrong on (−3) − (−5). The engine named it. With the shape check, a stand-in writer reproducing that failure is never named for that rule (0 of 40 sessions, previously 34 of 40); correct AI rules are still confirmed at the same rate, at a cost of about 4.6 extra questions on this path only.
 
    If the code is rejected for format or safety reasons (for example `/` instead of `//`, or type hints), the model gets **one** repair attempt, told only the rejection message. A rule that fails the student's answers is never retried, and hidden answers never appear in any prompt. Every prompt, reply and verdict is saved to `evidence/ai_raw_<writer>.jsonl`.
 
@@ -79,6 +81,7 @@ Set 3 was written by the same AI that designed the safeguards, so it may share b
 - **Students with no stable rule.** In subtraction and multiplication the wrong rules fire only on narrow cases, so a student mixing them answers correctly most of the time; the tool then often gives an all-clear (24.5% overall across topics).
 - One set-3 rule ("adds the whole number to the top") got a false all-clear 9% of the time, because a question like 2/5 × 2 gives the same answer either way.
 - Simplifying fractions is not covered (answers are compared by value).
+- The shape check is applied to AI-written rules only. Applying it to known rules too would stop known look-alikes from being named (2.5% of sessions where the student's rule is missing from the list) but cut correct diagnoses in normal sessions from 93.6% to 71.0% and nearly double the questions, so it is off by default (`diagnosis_needs_all_kinds="all"` turns it on).
 - No live AI model has been run yet. No user interface yet. No real students.
 
 ## Prior work, and what is new
@@ -94,7 +97,7 @@ What is different here: the tool never labels a misconception from one answer. I
 Python 3.10 or newer. Nothing to install.
 
 ```bash
-python -m unittest discover -s tests              # 52 tests
+python -m unittest discover -s tests              # 58 tests
 python scripts/demo.py --list                     # every rule the tool knows
 python scripts/demo.py --student sub_smaller_from_larger
 python scripts/demo.py --student div_across_drop_remainder

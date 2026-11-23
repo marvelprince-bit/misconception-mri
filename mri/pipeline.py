@@ -38,7 +38,9 @@ def try_ai_rule(session: Session, ask, gate: bool = True, seed: int = 0) -> tupl
         return None, f"AI rule-writer unavailable. {exc} Continuing with known rules only."
     if result.admitted:
         session.add_rule(result.rule)
-        session.max_questions = len(session.observations) + EXTRA_QUESTIONS_FOR_AI_RULE
+        # room for the fresh predictions plus one check per shape of question not tested yet
+        untested = len(session.untested_shapes())
+        session.max_questions = len(session.observations) + EXTRA_QUESTIONS_FOR_AI_RULE + untested
     return result, result.reason
 
 
