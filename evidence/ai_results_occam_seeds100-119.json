@@ -3,13 +3,13 @@
     "writer": "occam",
     "hidden_answer_check": true,
     "sessions": 480,
-    "ai_called_pct": 99.6,
-    "admitted_pct": 99.6,
+    "ai_called_pct": 100.0,
+    "admitted_pct": 100.0,
     "admitted_rules_truly_right_pct": 100.0,
-    "final_right_pct": 99.6,
-    "final_wrong_pct": 0.4,
+    "final_right_pct": 100.0,
+    "final_wrong_pct": 0.0,
     "final_no_diagnosis_pct": 0.0,
-    "mean_questions": 13.83,
+    "mean_questions": 13.84,
     "repair_used_pct": 0.0,
     "admitted_after_repair_pct": 0.0,
     "rows": [
@@ -83,7 +83,7 @@
         "result": "right",
         "questions": 24,
         "attempts": 1,
-        "reason": "Admitted: explains all 12 shown answers and predicted 1 of 1 hidden answers."
+        "reason": "Admitted: explains all 11 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "integers",
@@ -203,7 +203,7 @@
         "result": "right",
         "questions": 24,
         "attempts": 1,
-        "reason": "Admitted: explains all 11 shown answers and predicted 1 of 1 hidden answers."
+        "reason": "Admitted: explains all 10 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1691,7 +1691,7 @@
         "result": "right",
         "questions": 21,
         "attempts": 1,
-        "reason": "Admitted: explains all 8 shown answers and predicted 1 of 1 hidden answers."
+        "reason": "Admitted: explains all 7 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "fractions",
@@ -1973,13 +1973,13 @@
         "domain": "fractions",
         "hidden": "frac_add_tops_keep_larger_bottom",
         "seed": 103,
-        "ai_called": false,
-        "admitted": false,
-        "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "ai_called": true,
+        "admitted": true,
+        "admitted_and_truly_right": true,
+        "result": "right",
+        "questions": 9,
+        "attempts": 1,
+        "reason": "Admitted: explains all 5 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "fractions",
@@ -3353,13 +3353,13 @@
         "domain": "frac_sub",
         "hidden": "sub_tops_and_bottoms",
         "seed": 118,
-        "ai_called": false,
-        "admitted": false,
-        "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 10,
-        "attempts": 0,
-        "reason": ""
+        "ai_called": true,
+        "admitted": true,
+        "admitted_and_truly_right": true,
+        "result": "right",
+        "questions": 15,
+        "attempts": 1,
+        "reason": "Admitted: explains all 7 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "frac_sub",
@@ -3513,9 +3513,9 @@
         "admitted": true,
         "admitted_and_truly_right": true,
         "result": "right",
-        "questions": 19,
+        "questions": 17,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and predicted 1 of 1 hidden answers."
+        "reason": "Admitted: explains all 7 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "frac_sub",
@@ -3525,9 +3525,9 @@
         "admitted": true,
         "admitted_and_truly_right": true,
         "result": "right",
-        "questions": 17,
+        "questions": 15,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and predicted 1 of 1 hidden answers."
+        "reason": "Admitted: explains all 7 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "frac_sub",
@@ -5779,13 +5779,13 @@
     "writer": "occam",
     "hidden_answer_check": false,
     "sessions": 480,
-    "ai_called_pct": 99.6,
-    "admitted_pct": 99.6,
+    "ai_called_pct": 100.0,
+    "admitted_pct": 100.0,
     "admitted_rules_truly_right_pct": 100.0,
-    "final_right_pct": 99.6,
-    "final_wrong_pct": 0.4,
+    "final_right_pct": 100.0,
+    "final_wrong_pct": 0.0,
     "final_no_diagnosis_pct": 0.0,
-    "mean_questions": 13.83,
+    "mean_questions": 13.84,
     "repair_used_pct": 0.0,
     "admitted_after_repair_pct": 0.0,
     "rows": [
@@ -5859,7 +5859,7 @@
         "result": "right",
         "questions": 24,
         "attempts": 1,
-        "reason": "Admitted: explains all 12 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 11 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -5979,7 +5979,7 @@
         "result": "right",
         "questions": 24,
         "attempts": 1,
-        "reason": "Admitted: explains all 11 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -7467,7 +7467,7 @@
         "result": "right",
         "questions": 21,
         "attempts": 1,
-        "reason": "Admitted: explains all 8 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 7 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "fractions",
@@ -7749,13 +7749,13 @@
         "domain": "fractions",
         "hidden": "frac_add_tops_keep_larger_bottom",
         "seed": 103,
-        "ai_called": false,
-        "admitted": false,
-        "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "ai_called": true,
+        "admitted": true,
+        "admitted_and_truly_right": true,
+        "result": "right",
+        "questions": 9,
+        "attempts": 1,
+        "reason": "Admitted: explains all 5 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "fractions",
@@ -9129,13 +9129,13 @@
         "domain": "frac_sub",
         "hidden": "sub_tops_and_bottoms",
         "seed": 118,
-        "ai_called": false,
-        "admitted": false,
-        "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 10,
-        "attempts": 0,
-        "reason": ""
+        "ai_called": true,
+        "admitted": true,
+        "admitted_and_truly_right": true,
+        "result": "right",
+        "questions": 15,
+        "attempts": 1,
+        "reason": "Admitted: explains all 7 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "frac_sub",
@@ -9289,9 +9289,9 @@
         "admitted": true,
         "admitted_and_truly_right": true,
         "result": "right",
-        "questions": 19,
+        "questions": 17,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 7 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "frac_sub",
@@ -9301,9 +9301,9 @@
         "admitted": true,
         "admitted_and_truly_right": true,
         "result": "right",
-        "questions": 17,
+        "questions": 15,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 7 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "frac_sub",

@@ -3,13 +3,13 @@
     "writer": "partial",
     "hidden_answer_check": true,
     "sessions": 140,
-    "ai_called_pct": 90.7,
-    "admitted_pct": 82.9,
-    "admitted_rules_truly_right_pct": 51.7,
+    "ai_called_pct": 100.0,
+    "admitted_pct": 91.4,
+    "admitted_rules_truly_right_pct": 46.9,
     "final_right_pct": 42.9,
-    "final_wrong_pct": 9.3,
-    "final_no_diagnosis_pct": 47.9,
-    "mean_questions": 17.27,
+    "final_wrong_pct": 0.0,
+    "final_no_diagnosis_pct": 57.1,
+    "mean_questions": 18.44,
     "repair_used_pct": 0.0,
     "admitted_after_repair_pct": 0.0,
     "rows": [
@@ -33,9 +33,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 22,
         "attempts": 1,
-        "reason": "Admitted: explains all 12 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 15 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -81,21 +81,21 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 16,
+        "questions": 17,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 11 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
         "hidden": "int_ignore_signs_subtract",
         "seed": 6,
         "ai_called": true,
-        "admitted": true,
+        "admitted": false,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 17,
+        "questions": 10,
         "attempts": 1,
-        "reason": "Admitted: explains all 8 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Rejected: predicted only 0 of 2 answers it never saw. It fits the examples but does not generalise."
       },
       {
         "domain": "integers",
@@ -129,9 +129,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 17,
+        "questions": 19,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 11 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -165,9 +165,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 16,
+        "questions": 19,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 12 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -177,7 +177,7 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 15,
+        "questions": 14,
         "attempts": 1,
         "reason": "Admitted: explains all 10 shown answers and predicted 2 of 2 hidden answers."
       },
@@ -213,9 +213,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 16,
+        "questions": 18,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 11 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -225,9 +225,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 17,
+        "questions": 19,
         "attempts": 1,
-        "reason": "Admitted: explains all 8 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 12 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -237,9 +237,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 17,
+        "questions": 19,
         "attempts": 1,
-        "reason": "Admitted: explains all 8 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 11 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -249,9 +249,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 17,
+        "questions": 18,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 10 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -287,7 +287,7 @@
         "result": "right",
         "questions": 21,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and predicted 1 of 1 hidden answers."
+        "reason": "Admitted: explains all 9 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "integers",
@@ -299,7 +299,7 @@
         "result": "right",
         "questions": 20,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and predicted 1 of 1 hidden answers."
+        "reason": "Admitted: explains all 9 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "integers",
@@ -323,7 +323,7 @@
         "result": "right",
         "questions": 20,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and predicted 1 of 1 hidden answers."
+        "reason": "Admitted: explains all 10 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "integers",
@@ -371,7 +371,7 @@
         "result": "right",
         "questions": 20,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and predicted 1 of 1 hidden answers."
+        "reason": "Admitted: explains all 10 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "integers",
@@ -381,9 +381,9 @@
         "admitted": true,
         "admitted_and_truly_right": true,
         "result": "right",
-        "questions": 22,
+        "questions": 21,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and predicted 1 of 1 hidden answers."
+        "reason": "Admitted: explains all 9 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "integers",
@@ -395,7 +395,7 @@
         "result": "right",
         "questions": 21,
         "attempts": 1,
-        "reason": "Admitted: explains all 11 shown answers and predicted 1 of 1 hidden answers."
+        "reason": "Admitted: explains all 12 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "integers",
@@ -443,7 +443,7 @@
         "result": "right",
         "questions": 22,
         "attempts": 1,
-        "reason": "Admitted: explains all 11 shown answers and predicted 1 of 1 hidden answers."
+        "reason": "Admitted: explains all 12 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "integers",
@@ -465,9 +465,9 @@
         "admitted": true,
         "admitted_and_truly_right": true,
         "result": "right",
-        "questions": 22,
+        "questions": 21,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and predicted 1 of 1 hidden answers."
+        "reason": "Admitted: explains all 9 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "integers",
@@ -477,9 +477,9 @@
         "admitted": true,
         "admitted_and_truly_right": true,
         "result": "right",
-        "questions": 21,
+        "questions": 20,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and predicted 1 of 1 hidden answers."
+        "reason": "Admitted: explains all 9 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "integers",
@@ -537,9 +537,9 @@
         "admitted": true,
         "admitted_and_truly_right": true,
         "result": "right",
-        "questions": 20,
+        "questions": 22,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and predicted 1 of 1 hidden answers."
+        "reason": "Admitted: explains all 10 shown answers and predicted 1 of 1 hidden answers."
       },
       {
         "domain": "integers",
@@ -989,13 +989,13 @@
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 1,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 4,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 14,
+        "attempts": 1,
+        "reason": "Admitted: explains all 9 shown answers and predicted 3 of 3 hidden answers."
       },
       {
         "domain": "integers",
@@ -1013,13 +1013,13 @@
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 3,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 4,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 13,
+        "attempts": 1,
+        "reason": "Admitted: explains all 8 shown answers and predicted 3 of 3 hidden answers."
       },
       {
         "domain": "integers",
@@ -1037,13 +1037,13 @@
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 5,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 14,
+        "attempts": 1,
+        "reason": "Admitted: explains all 9 shown answers and predicted 3 of 3 hidden answers."
       },
       {
         "domain": "integers",
@@ -1065,57 +1065,57 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 13,
+        "questions": 12,
         "attempts": 1,
-        "reason": "Admitted: explains all 8 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 6 shown answers and predicted 3 of 3 hidden answers."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 8,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 14,
+        "attempts": 1,
+        "reason": "Admitted: explains all 9 shown answers and predicted 3 of 3 hidden answers."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 9,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 16,
+        "attempts": 1,
+        "reason": "Admitted: explains all 11 shown answers and predicted 3 of 3 hidden answers."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 10,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 14,
+        "attempts": 1,
+        "reason": "Admitted: explains all 9 shown answers and predicted 3 of 3 hidden answers."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 11,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 4,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 14,
+        "attempts": 1,
+        "reason": "Admitted: explains all 9 shown answers and predicted 3 of 3 hidden answers."
       },
       {
         "domain": "integers",
@@ -1133,25 +1133,25 @@
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 13,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 16,
+        "attempts": 1,
+        "reason": "Admitted: explains all 11 shown answers and predicted 3 of 3 hidden answers."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 14,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 4,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 16,
+        "attempts": 1,
+        "reason": "Admitted: explains all 11 shown answers and predicted 3 of 3 hidden answers."
       },
       {
         "domain": "integers",
@@ -1169,49 +1169,49 @@
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 16,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 4,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 13,
+        "attempts": 1,
+        "reason": "Admitted: explains all 8 shown answers and predicted 3 of 3 hidden answers."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 17,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 15,
+        "attempts": 1,
+        "reason": "Admitted: explains all 10 shown answers and predicted 3 of 3 hidden answers."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 18,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 4,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 15,
+        "attempts": 1,
+        "reason": "Admitted: explains all 10 shown answers and predicted 3 of 3 hidden answers."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 19,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 14,
+        "attempts": 1,
+        "reason": "Admitted: explains all 9 shown answers and predicted 3 of 3 hidden answers."
       },
       {
         "domain": "integers",
@@ -1221,9 +1221,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 23,
         "attempts": 1,
-        "reason": "Admitted: explains all 17 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 19 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1233,9 +1233,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 22,
         "attempts": 1,
-        "reason": "Admitted: explains all 14 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 16 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1245,9 +1245,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 23,
         "attempts": 1,
-        "reason": "Admitted: explains all 16 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 18 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1281,9 +1281,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 22,
+        "questions": 23,
         "attempts": 1,
-        "reason": "Admitted: explains all 15 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 17 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1293,9 +1293,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 23,
         "attempts": 1,
-        "reason": "Admitted: explains all 16 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 18 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1305,9 +1305,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 24,
         "attempts": 1,
-        "reason": "Admitted: explains all 17 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 19 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1317,9 +1317,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 19,
+        "questions": 23,
         "attempts": 1,
-        "reason": "Admitted: explains all 15 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 17 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1329,9 +1329,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 22,
+        "questions": 23,
         "attempts": 1,
-        "reason": "Admitted: explains all 16 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 18 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1341,9 +1341,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 20,
+        "questions": 22,
         "attempts": 1,
-        "reason": "Admitted: explains all 16 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 18 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1353,9 +1353,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 22,
         "attempts": 1,
-        "reason": "Admitted: explains all 16 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 18 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1377,9 +1377,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 24,
         "attempts": 1,
-        "reason": "Admitted: explains all 17 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 19 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1413,9 +1413,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 20,
+        "questions": 22,
         "attempts": 1,
-        "reason": "Admitted: explains all 15 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 18 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1425,7 +1425,7 @@
         "admitted": false,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 13,
+        "questions": 17,
         "attempts": 1,
         "reason": "Not revised: the new questions gave no new wrong answers to test on."
       },
@@ -1449,9 +1449,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 24,
         "attempts": 1,
-        "reason": "Admitted: explains all 15 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 17 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1485,9 +1485,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 15,
+        "questions": 14,
         "attempts": 1,
-        "reason": "Admitted: explains all 11 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 10 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1497,7 +1497,7 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 14,
+        "questions": 15,
         "attempts": 1,
         "reason": "Admitted: explains all 6 shown answers and predicted 3 of 3 hidden answers."
       },
@@ -1509,7 +1509,7 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 15,
+        "questions": 14,
         "attempts": 1,
         "reason": "Admitted: explains all 7 shown answers and predicted 2 of 2 hidden answers."
       },
@@ -1605,7 +1605,7 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 14,
+        "questions": 15,
         "attempts": 1,
         "reason": "Admitted: explains all 10 shown answers and predicted 2 of 2 hidden answers."
       },
@@ -1677,9 +1677,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 16,
+        "questions": 17,
         "attempts": 1,
-        "reason": "Admitted: explains all 11 shown answers and predicted 2 of 2 hidden answers."
+        "reason": "Admitted: explains all 12 shown answers and predicted 2 of 2 hidden answers."
       },
       {
         "domain": "integers",
@@ -1689,7 +1689,7 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 14,
+        "questions": 13,
         "attempts": 1,
         "reason": "Admitted: explains all 9 shown answers and predicted 2 of 2 hidden answers."
       }
@@ -1699,13 +1699,13 @@
     "writer": "partial",
     "hidden_answer_check": false,
     "sessions": 140,
-    "ai_called_pct": 90.7,
-    "admitted_pct": 90.7,
-    "admitted_rules_truly_right_pct": 47.2,
+    "ai_called_pct": 100.0,
+    "admitted_pct": 100.0,
+    "admitted_rules_truly_right_pct": 42.9,
     "final_right_pct": 42.9,
-    "final_wrong_pct": 9.3,
-    "final_no_diagnosis_pct": 47.9,
-    "mean_questions": 16.88,
+    "final_wrong_pct": 0.0,
+    "final_no_diagnosis_pct": 57.1,
+    "mean_questions": 18.43,
     "repair_used_pct": 0.0,
     "admitted_after_repair_pct": 0.0,
     "rows": [
@@ -1717,9 +1717,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 10,
+        "questions": 12,
         "attempts": 1,
-        "reason": "Admitted: explains all 8 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -1729,9 +1729,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 22,
         "attempts": 1,
-        "reason": "Admitted: explains all 12 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 15 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -1777,9 +1777,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 16,
+        "questions": 17,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 11 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -1789,9 +1789,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 9,
+        "questions": 17,
         "attempts": 1,
-        "reason": "Admitted: explains all 7 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 8 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -1825,9 +1825,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 17,
+        "questions": 19,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 11 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -1861,9 +1861,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 16,
+        "questions": 19,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 12 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -1909,9 +1909,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 16,
+        "questions": 18,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 11 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -1921,9 +1921,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 17,
+        "questions": 19,
         "attempts": 1,
-        "reason": "Admitted: explains all 8 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 12 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -1933,9 +1933,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 9,
+        "questions": 19,
         "attempts": 1,
-        "reason": "Admitted: explains all 7 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 11 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -1945,9 +1945,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 17,
+        "questions": 18,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -1983,7 +1983,7 @@
         "result": "right",
         "questions": 21,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -1995,7 +1995,7 @@
         "result": "right",
         "questions": 20,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2019,7 +2019,7 @@
         "result": "right",
         "questions": 20,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2067,7 +2067,7 @@
         "result": "right",
         "questions": 20,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2077,9 +2077,9 @@
         "admitted": true,
         "admitted_and_truly_right": true,
         "result": "right",
-        "questions": 22,
+        "questions": 21,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2091,7 +2091,7 @@
         "result": "right",
         "questions": 21,
         "attempts": 1,
-        "reason": "Admitted: explains all 11 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 12 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2139,7 +2139,7 @@
         "result": "right",
         "questions": 22,
         "attempts": 1,
-        "reason": "Admitted: explains all 11 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 12 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2161,9 +2161,9 @@
         "admitted": true,
         "admitted_and_truly_right": true,
         "result": "right",
-        "questions": 22,
+        "questions": 21,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2173,9 +2173,9 @@
         "admitted": true,
         "admitted_and_truly_right": true,
         "result": "right",
-        "questions": 21,
+        "questions": 20,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2233,9 +2233,9 @@
         "admitted": true,
         "admitted_and_truly_right": true,
         "result": "right",
-        "questions": 20,
+        "questions": 22,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2677,7 +2677,7 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 12,
+        "questions": 11,
         "attempts": 1,
         "reason": "Admitted: explains all 5 shown answers and hidden-answer check switched off."
       },
@@ -2685,13 +2685,13 @@
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 1,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 4,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 14,
+        "attempts": 1,
+        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2701,21 +2701,21 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 8,
+        "questions": 14,
         "attempts": 1,
-        "reason": "Admitted: explains all 6 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 8 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 3,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 4,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 13,
+        "attempts": 1,
+        "reason": "Admitted: explains all 8 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2725,21 +2725,21 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 7,
+        "questions": 9,
         "attempts": 1,
-        "reason": "Admitted: explains all 5 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 7 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 5,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 14,
+        "attempts": 1,
+        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2749,9 +2749,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 8,
+        "questions": 10,
         "attempts": 1,
-        "reason": "Admitted: explains all 6 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 8 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2761,57 +2761,57 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 11,
+        "questions": 7,
         "attempts": 1,
-        "reason": "Admitted: explains all 7 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 4 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 8,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 14,
+        "attempts": 1,
+        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 9,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 16,
+        "attempts": 1,
+        "reason": "Admitted: explains all 11 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 10,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 14,
+        "attempts": 1,
+        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 11,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 4,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 14,
+        "attempts": 1,
+        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2829,25 +2829,25 @@
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 13,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 16,
+        "attempts": 1,
+        "reason": "Admitted: explains all 11 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 14,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 4,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 16,
+        "attempts": 1,
+        "reason": "Admitted: explains all 11 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2857,7 +2857,7 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 12,
+        "questions": 13,
         "attempts": 1,
         "reason": "Admitted: explains all 7 shown answers and hidden-answer check switched off."
       },
@@ -2865,49 +2865,49 @@
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 16,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 4,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 13,
+        "attempts": 1,
+        "reason": "Admitted: explains all 8 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 17,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 15,
+        "attempts": 1,
+        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 18,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 4,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 15,
+        "attempts": 1,
+        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
         "hidden": "int_always_positive",
         "seed": 19,
-        "ai_called": false,
-        "admitted": false,
+        "ai_called": true,
+        "admitted": true,
         "admitted_and_truly_right": false,
-        "result": "wrong",
-        "questions": 5,
-        "attempts": 0,
-        "reason": ""
+        "result": "no_diagnosis",
+        "questions": 14,
+        "attempts": 1,
+        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2917,9 +2917,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 23,
         "attempts": 1,
-        "reason": "Admitted: explains all 17 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 19 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2929,9 +2929,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 22,
         "attempts": 1,
-        "reason": "Admitted: explains all 14 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 16 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2941,14 +2941,26 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 23,
         "attempts": 1,
-        "reason": "Admitted: explains all 16 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 18 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
         "hidden": "int_sign_of_first",
         "seed": 3,
+        "ai_called": true,
+        "admitted": true,
+        "admitted_and_truly_right": false,
+        "result": "no_diagnosis",
+        "questions": 15,
+        "attempts": 1,
+        "reason": "Admitted: explains all 13 shown answers and hidden-answer check switched off."
+      },
+      {
+        "domain": "integers",
+        "hidden": "int_sign_of_first",
+        "seed": 4,
         "ai_called": true,
         "admitted": true,
         "admitted_and_truly_right": false,
@@ -2960,26 +2972,14 @@
       {
         "domain": "integers",
         "hidden": "int_sign_of_first",
-        "seed": 4,
-        "ai_called": true,
-        "admitted": true,
-        "admitted_and_truly_right": false,
-        "result": "no_diagnosis",
-        "questions": 11,
-        "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
-      },
-      {
-        "domain": "integers",
-        "hidden": "int_sign_of_first",
         "seed": 5,
         "ai_called": true,
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 22,
+        "questions": 23,
         "attempts": 1,
-        "reason": "Admitted: explains all 15 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 17 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -2989,9 +2989,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 23,
         "attempts": 1,
-        "reason": "Admitted: explains all 16 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 18 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -3001,9 +3001,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 24,
         "attempts": 1,
-        "reason": "Admitted: explains all 17 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 19 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -3013,9 +3013,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 19,
+        "questions": 23,
         "attempts": 1,
-        "reason": "Admitted: explains all 15 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 17 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -3025,9 +3025,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 22,
+        "questions": 23,
         "attempts": 1,
-        "reason": "Admitted: explains all 16 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 18 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -3037,9 +3037,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 20,
+        "questions": 22,
         "attempts": 1,
-        "reason": "Admitted: explains all 16 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 18 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -3049,38 +3049,14 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 22,
         "attempts": 1,
-        "reason": "Admitted: explains all 16 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 18 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
         "hidden": "int_sign_of_first",
         "seed": 12,
-        "ai_called": true,
-        "admitted": true,
-        "admitted_and_truly_right": false,
-        "result": "no_diagnosis",
-        "questions": 12,
-        "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
-      },
-      {
-        "domain": "integers",
-        "hidden": "int_sign_of_first",
-        "seed": 13,
-        "ai_called": true,
-        "admitted": true,
-        "admitted_and_truly_right": false,
-        "result": "no_diagnosis",
-        "questions": 21,
-        "attempts": 1,
-        "reason": "Admitted: explains all 17 shown answers and hidden-answer check switched off."
-      },
-      {
-        "domain": "integers",
-        "hidden": "int_sign_of_first",
-        "seed": 14,
         "ai_called": true,
         "admitted": true,
         "admitted_and_truly_right": false,
@@ -3092,14 +3068,38 @@
       {
         "domain": "integers",
         "hidden": "int_sign_of_first",
+        "seed": 13,
+        "ai_called": true,
+        "admitted": true,
+        "admitted_and_truly_right": false,
+        "result": "no_diagnosis",
+        "questions": 24,
+        "attempts": 1,
+        "reason": "Admitted: explains all 19 shown answers and hidden-answer check switched off."
+      },
+      {
+        "domain": "integers",
+        "hidden": "int_sign_of_first",
+        "seed": 14,
+        "ai_called": true,
+        "admitted": true,
+        "admitted_and_truly_right": false,
+        "result": "no_diagnosis",
+        "questions": 21,
+        "attempts": 1,
+        "reason": "Admitted: explains all 14 shown answers and hidden-answer check switched off."
+      },
+      {
+        "domain": "integers",
+        "hidden": "int_sign_of_first",
         "seed": 15,
         "ai_called": true,
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 11,
+        "questions": 13,
         "attempts": 1,
-        "reason": "Admitted: explains all 9 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 11 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -3109,9 +3109,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 20,
+        "questions": 22,
         "attempts": 1,
-        "reason": "Admitted: explains all 15 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 18 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -3121,9 +3121,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 12,
+        "questions": 18,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 16 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -3133,9 +3133,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 12,
+        "questions": 14,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 12 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -3145,9 +3145,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 21,
+        "questions": 24,
         "attempts": 1,
-        "reason": "Admitted: explains all 15 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 17 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -3181,9 +3181,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 15,
+        "questions": 14,
         "attempts": 1,
-        "reason": "Admitted: explains all 11 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -3193,7 +3193,7 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 14,
+        "questions": 15,
         "attempts": 1,
         "reason": "Admitted: explains all 6 shown answers and hidden-answer check switched off."
       },
@@ -3205,7 +3205,7 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 14,
+        "questions": 13,
         "attempts": 1,
         "reason": "Admitted: explains all 6 shown answers and hidden-answer check switched off."
       },
@@ -3301,7 +3301,7 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 14,
+        "questions": 15,
         "attempts": 1,
         "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
       },
@@ -3373,9 +3373,9 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 15,
+        "questions": 17,
         "attempts": 1,
-        "reason": "Admitted: explains all 10 shown answers and hidden-answer check switched off."
+        "reason": "Admitted: explains all 12 shown answers and hidden-answer check switched off."
       },
       {
         "domain": "integers",
@@ -3385,7 +3385,7 @@
         "admitted": true,
         "admitted_and_truly_right": false,
         "result": "no_diagnosis",
-        "questions": 13,
+        "questions": 12,
         "attempts": 1,
         "reason": "Admitted: explains all 8 shown answers and hidden-answer check switched off."
       }
