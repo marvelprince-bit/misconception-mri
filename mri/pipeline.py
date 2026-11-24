@@ -19,6 +19,9 @@ RIVAL_QUESTIONS = 4
 # Extra questions a revision may ask, in the kinds where the student has been wrong, when
 # the targeted questions gave no new wrong answer to test the revised rule on.
 MORE_FOR_WRONG = 3
+# Questions reserved for decision coverage (mri/paths.py): every outcome of every decision
+# in an AI rule's code must be tried on a real answer before it is named.
+PATH_QUESTIONS = 6
 # After a rule was admitted and then CONTRADICTED by the student, the contradicting answers
 # are already new evidence: questions stop as soon as this many NEW wrong answers are in hand
 # (one is needed as the fresh hidden answer), up to REVISION_QUESTIONS.
@@ -79,7 +82,7 @@ def try_ai_rule(session: Session, ask, gate: bool = True, seed: int = 0,
         # room for the fresh predictions plus one check per shape of question not tested yet
         untested = len(session.untested_shapes())
         session.max_questions = len(session.observations) + EXTRA_QUESTIONS_FOR_AI_RULE + untested \
-            + RIVAL_QUESTIONS
+            + RIVAL_QUESTIONS + PATH_QUESTIONS
     return result, result.reason
 
 
@@ -192,7 +195,7 @@ def _repair(session: Session, log: "Transcript") -> bool:
     log.repaired = len(found)
     untested = len(session.untested_shapes())
     session.max_questions = len(session.observations) + EXTRA_QUESTIONS_FOR_AI_RULE + untested \
-        + RIVAL_QUESTIONS + REPAIR_QUESTIONS
+        + RIVAL_QUESTIONS + REPAIR_QUESTIONS + PATH_QUESTIONS
     log.notes.append(f"Repair: {len(found)} small edit(s) of the AI's rule fit every answer so far; "
                      "each must now pass every check on new questions.")
     return True

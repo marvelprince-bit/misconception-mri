@@ -513,3 +513,37 @@ class RepairStep(unittest.TestCase):
                 s = Session(h.domain, rules=rules, seed=seed)
                 st = run_session(s, SimulatedStudent(h, 0.0, seed=seed), ask=fakes.cheat).status
                 self.assertNotIn(st.state, ("diagnosed", "no_misconception"))
+
+
+class DecisionCoverage(unittest.TestCase):
+    """Live run 8 (24 Nov, new student) named Claude's division rule
+    (n1 // n2) / max(1, d1 // d2): the branch where max() switches to 1 was never tried.
+    Every outcome of every decision in an AI rule must be tried before it is named."""
+
+    LIVE = ("def rule(n1, d1, n2, d2):\n    if n1 < n2:\n        return (n1 * d2, d1 * n2)\n"
+            "    return (n1 // n2, max(1, d1 // d2))")
+
+    def test_live_division_rule_never_named(self):
+        from mri.engine import Session
+        from mri.pipeline import run_session
+        from mri.rules import library
+        from mri.student import SimulatedStudent
+        h = get_rule("div_across_drop_remainder")
+        rules = [r for r in library("frac_div") if r.id != h.id]
+        for seed in list(range(10)) + [20261124]:
+            s = Session("frac_div", rules=rules, seed=seed)
+            st = run_session(s, SimulatedStudent(h, 0.0, seed=seed),
+                             ask=lambda p: f"DESCRIPTION: x\n```python\n{self.LIVE}\n```").status
+            named_wrong = st.state == "no_misconception" or (
+                st.state == "diagnosed" and not all(st.rule.predict(p) == h.predict(p) for p in s.pool))
+            self.assertFalse(named_wrong, f"seed {seed}")
+
+    def test_tracer_sees_the_max_switch(self):
+        from mri.paths import decision_tracer
+        trace = decision_tracer(self.LIVE)
+        self.assertNotEqual(trace((1, 2, 1, 3)), trace((7, 8, 1, 3)))  # max picks 1 vs d1 // d2
+
+    def test_tracer_cannot_escape_sandbox_names(self):
+        from mri.paths import decision_tracer
+        trace = decision_tracer("def rule(a, op, b):\n    return abs(a) + max(a, b)")
+        self.assertIsNotNone(trace((1, "+", 2)))

@@ -114,6 +114,7 @@ class Session:
         # where the student's rule happened to look correct can then hide the difference.
         diagnosis_needs_all_kinds: str = "risk",
         check_rivals: bool = True,
+        check_paths: bool = True,
     ):
         if policy not in ("disagreement", "random"):
             raise ValueError("policy must be 'disagreement' or 'random'")
@@ -136,6 +137,7 @@ class Session:
         self.min_to_abstain = min_to_abstain
         self.max_questions = max_questions
         self.check_rivals = check_rivals
+        self.check_paths = check_paths
         self.confirmations = confirmations
         self.confirm_mode = confirm_mode
         self.clear_needs_all_kinds = clear_needs_all_kinds
@@ -486,6 +488,53 @@ class Session:
                 pass
         return n
 
+    def _outcomes(self, rule: Rule, problem: Problem):
+        from .paths import decision_tracer
+        cache = getattr(self, "_trace_cache", None)
+        if cache is None:
+            cache = self._trace_cache = {}
+        if rule.code not in cache:
+            cache[rule.code] = (decision_tracer(rule.code), {})
+        tracer, memo = cache[rule.code]
+        if tracer is None:
+            return None
+        if problem not in memo:
+            memo[problem] = tracer(problem.args)
+        return memo[problem]
+
+    def _path_question(self, rule: Rule):
+        """(question, untried): a question that tries the most decision outcomes of the AI
+        rule never yet tried on one of this student's answers. untried is True if such
+        outcomes exist but no unasked question reaches them."""
+        if not rule.code:
+            return None, False
+        tried = set()
+        for o in self.observations:
+            out = self._outcomes(rule, o.problem)
+            if out is None:
+                return None, False
+            tried |= out
+        asked = self._asked()
+        best, best_key, possible = [], None, set()
+        for p in self.pool:
+            out = self._outcomes(rule, p)
+            new = out - tried
+            if not new:
+                continue
+            possible |= new
+            if p in asked:
+                continue
+            key = (len(new), self.genericity(p))
+            if best_key is None or key > best_key:
+                best, best_key = [p], key
+            elif key == best_key:
+                best.append(p)
+        if not best:
+            return None, bool(possible)
+        problem = self.rng.choice(best)
+        return Question(problem, "confirm", predicted=rule.predict(problem), predicted_rule=rule.id,
+                        why=f"coverage check: tries {best_key[0]} part(s) of the AI rule's logic not yet tried"), False
+
     def _live_rivals(self, rule: Rule) -> list:
         """Variations of an AI rule that fit the student's answers at least as well as the
         rule itself, and still differ from it on some question not asked yet."""
@@ -612,6 +661,22 @@ class Session:
                 if question is None:
                     confirmed = self._confirm_hits(rule) >= self.confirmations
                     question = None if confirmed else self._confirm_question(rule)
+                if question is None and rule.source == "ai" and self.check_paths:
+                    # Every outcome of every decision in the rule's code must have been
+                    # tried on a real answer (see mri/paths.py).
+                    question, untried = self._path_question(rule)
+                    if question is not None:
+                        confirmed = False
+                        if n >= self.max_questions:
+                            return status(
+                                "abstain", None, False,
+                                "An AI-written rule fits, but part of its logic has never been tried "
+                                "on this student and no questions are left. No diagnosis is given."), None
+                    elif untried:
+                        return status(
+                            "abstain", None, False,
+                            "An AI-written rule fits, but part of its logic cannot be tried with the "
+                            "questions left. No diagnosis is given."), None
                 if question is None and rule.source == "ai" and self.check_rivals:
                     # Last check before naming: no small variation of the rule may fit
                     # the student's answers equally well (see mri/rivals.py).
