@@ -6,7 +6,7 @@ Built for the Global AI Builder's Challenge (Devpost, November 21 to 28, 2026).
 
 Topics: adding and subtracting negative numbers; adding, subtracting (including mixed numbers), multiplying and dividing fractions.
 
-**Status, 23 Nov 2026:** engine, AI rule-writer (tested with stand-ins; first live Gemini test run by Emmanuel), demo, 63 unit tests and four evaluations work. Not yet done: a run with a live AI model, a user interface, and any use by real students. Every number below comes from simulated students or from the published MaE examples.
+**Status, 23 Nov 2026:** engine, AI rule-writer (tested with stand-ins; first live Gemini test run by Emmanuel), demo, 67 unit tests and four evaluations work. Not yet done: a run with a live AI model, a user interface, and any use by real students. Every number below comes from simulated students or from the published MaE examples.
 
 ## The problem
 
@@ -30,7 +30,20 @@ Research calls this the *correct answer trap*: AI tutors under-detect misconcept
 
    - and, before it can be named as the diagnosis, must match the student on **every shape of question not yet tested** (a kind of question, split by which number is larger in size), using the most contested question of each shape. This was added after a live Claude run: Claude wrote a rule that copied the student's "sign of the first number" rule on addition but did subtraction normally. It fit all 10 answers it was shown and a hidden one, because the student's subtraction answers happened to look correct, yet it is wrong on (−3) − (−5). The engine named it. With the shape check, a stand-in writer reproducing that failure is never named for that rule (0 of 40 sessions, previously 34 of 40); correct AI rules are still confirmed at the same rate, at a cost of about 4.6 extra questions on this path only.
 
-   **Efficiency of this path** (`evidence/efficiency_report.md`): a later live Claude run on the same rule was safe (no diagnosis) but took 20 questions. Tracing it showed the AI had only seen wrong answers from one shape of question, and the hidden answers came from that same shape. Three changes, all on the AI path only (every session that does not call the AI is byte-for-byte unchanged): (a) before calling the AI, collect wrong answers from varied shapes, closest and most contested first, while keeping enough questions in reserve for rules that only show up in one shape; (b) when the wrong answers span three or more kinds, hide a whole kind from the AI so the check tests generalisation; (c) check an AI rule's riskiest shapes first and skip shapes where every known method agrees. Results with identical right, wrong and no-diagnosis rates for every hidden rule: questions for that student fell from 18.2 to 14.5 on average (max 21 to 18), for all partial-rule cases from 16.6 to 13.3, and for correct AI rules from 13.9 to 12.6, with correct diagnoses up from 90.6% to 91.9%.
+   **Efficiency and second chances on this path** (`evidence/efficiency_report.md`, generated from `efficiency_before.json` and `efficiency_final.json`). A live Claude run on that student was safe (no diagnosis) but took 20 questions. Tracing it showed the AI had only seen wrong answers from one shape of question, and the hidden answers came from that same shape. Changes, all on the AI path only (every session that does not call the AI is byte-for-byte unchanged):
+   - before calling the AI, collect wrong answers from varied shapes, closest and most contested first, keeping enough questions in reserve for rules that only show up in one shape;
+   - when the wrong answers span three or more kinds, hide a whole kind from the AI so the check tests generalisation;
+   - check an AI rule's riskiest shapes first and skip shapes where every known method agrees;
+   - **one revision**: if the AI's rule fails the hidden answers, or is admitted and later contradicted by the student, a few new answers are collected where it failed and the AI may write one revised rule. Every answer ever hidden stays hidden and one new one is added, so the revision faces a stricter check; the prompt says only that the earlier rule failed, never which answers. (Switch off with `MRI_MAX_REVISIONS=0` or `MRI_REVISE_CONTRADICTED=0`.)
+
+   | Stand-in writer (20 students per hidden rule) | Right | Wrong | No diagnosis | Mean questions |
+   |---|---|---|---|---|
+   | Writes the correct rule, before -> after | 90.6% -> 91.9% | 8.1% -> 8.1% | 1.2% -> 0.0% | 13.88 -> 12.64 |
+   | Copies only the shapes it saw wrong, before -> after | 30.7% -> 42.9% | 9.3% -> 9.3% | 60.0% -> 47.9% | 16.57 -> 17.27 |
+
+   The remaining "wrong" are all known look-alike rules named before the AI is called. Revision helps where the AI can extend a pattern (two misconceptions went from 16/20 and 7/20 right to 20/20); for a writer that never generalises it only costs questions, e.g. 18.2 questions on average for that student (14.5 with revision switched off). Whether the revision pays off with a real model is being tested live.
+
+   **First live run, Claude Sonnet 5.5, one student per misconception (24 sessions, before the revision step):** 20 right, 0 wrong, 4 no diagnosis, 11.8 questions on average. 21 rules were admitted; the one that was not the student's real rule (`int_sign_of_first`) was caught during verification. No reply needed the repair step. With 24 sessions the true right-rate could plausibly be anywhere from about 63% to 95%.
 
    If the code is rejected for format or safety reasons (for example `/` instead of `//`, or type hints), the model gets **one** repair attempt, told only the rejection message. A rule that fails the student's answers is never retried, and hidden answers never appear in any prompt. Every prompt, reply and verdict is saved to `evidence/ai_raw_<writer>.jsonl`.
 
@@ -99,7 +112,7 @@ What is different here: the tool never labels a misconception from one answer. I
 Python 3.10 or newer. Nothing to install.
 
 ```bash
-python -m unittest discover -s tests              # 63 tests
+python -m unittest discover -s tests              # 67 tests
 python scripts/demo.py --list                     # every rule the tool knows
 python scripts/demo.py --student sub_smaller_from_larger
 python scripts/demo.py --student div_across_drop_remainder
@@ -108,7 +121,7 @@ python scripts/evaluate.py                        # rebuilds evidence/results.md
 python scripts/evaluate_set3.py                   # the clean unseen-rule test (seconds)
 python scripts/evaluate_mae.py                    # the MaE answer key
 python scripts/evaluate_ai.py --writer cheat      # the admission check, no key needed
-python scripts/evaluate_efficiency.py --compare before after   # AI-path efficiency report
+python scripts/evaluate_efficiency.py --compare before final   # AI-path efficiency report
 ```
 
 Live AI rule-writer (either provider; never commit a key, see `.env.example`):
