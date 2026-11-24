@@ -27,6 +27,17 @@ def max_revisions() -> int:
     return int(os.environ.get("MRI_MAX_REVISIONS", "1"))
 
 
+def repair_enabled() -> bool:
+    """MRI_REPAIR=0 switches the repair step off (for comparison)."""
+    return os.environ.get("MRI_REPAIR", "1") != "0"
+
+
+def _note_tried(log) -> None:
+    adm = log.admission
+    if adm is not None and getattr(adm, "code", "") and adm.code not in log.tried_codes:
+        log.tried_codes.append(adm.code)
+
+
 def revise_after_contradiction() -> bool:
     return os.environ.get("MRI_REVISE_CONTRADICTED", "1") == "1"
 
@@ -38,6 +49,8 @@ class Transcript:
     ai_attempted: bool = False
     ai_unavailable: bool = False
     revisions: int = 0
+    repaired: int = 0  # repaired rules added by the tool (see _repair)
+    tried_codes: list = field(default_factory=list)  # every AI-written rule, admitted or not
     admitted_at: int = 0  # number of answers recorded when the AI rule was admitted
     admission: Admission | None = None
     status: Status | None = None
@@ -112,6 +125,63 @@ def _revise(session: Session, ask, gate: bool, log: "Transcript", put, failed: A
     return False
 
 
+# Repair: at most this many repaired rules are added, with this many extra questions.
+MAX_REPAIRS = 8
+REPAIR_QUESTIONS = 8
+
+
+def _repair(session: Session, log: "Transcript") -> bool:
+    """Last step before giving up: try small edits of the AI's failed rules.
+
+    In the live runs Claude sometimes wrote a rule one edit away from the student's real
+    one (an extra condition, a missing abs()). The tool makes the same small, sandboxed
+    edits used by the rival check (mri/rivals.py) and keeps those that fit EVERY answer
+    the student has given, hidden ones included. Because the student's answers were used
+    to choose them, those answers prove nothing about them: each repaired rule enters as
+    an AI-written rule and must pass every check again on NEW questions (predictions made
+    before the answers, every untested shape, no rival left, not a single miss).
+    Returns True if any repaired rule was added."""
+    if log.repaired or not log.tried_codes:
+        return False
+    from .rivals import answer, rivals
+    obs = [o for o in session.observations if o.answer is not None]
+    correct = session.correct
+    known = [r for r in session.rules if r.source != "ai"]
+    seen_behaviour = {tuple(r.predict(p) for p in session.pool) for r in known}
+    found = []
+    for code in log.tried_codes:
+        try:
+            base = compile_rule(code, session.domain, "failed_ai_rule")
+        except UnsafeRule:
+            continue
+        for r in rivals(base):
+            if not all(answer(r, o.problem) == o.answer for o in obs):
+                continue
+            behaviour = tuple(answer(r, p) for p in session.pool)
+            if None in behaviour or behaviour in seen_behaviour:
+                continue  # breaks on some question, or same as a rule already ruled out/kept
+            if correct is not None and all(b == correct.predict(p) for b, p in zip(behaviour, session.pool)):
+                continue
+            seen_behaviour.add(behaviour)
+            found.append(r.code)
+            if len(found) >= MAX_REPAIRS:
+                break
+        if len(found) >= MAX_REPAIRS:
+            break
+    if not found:
+        return False
+    for k, code in enumerate(found, 1):
+        session.add_rule(compile_rule(code, session.domain, f"ai_repair_{k}",
+                                      "AI-written rule, repaired by the tool (see code)."))
+    log.repaired = len(found)
+    untested = len(session.untested_shapes())
+    session.max_questions = len(session.observations) + EXTRA_QUESTIONS_FOR_AI_RULE + untested \
+        + RIVAL_QUESTIONS + REPAIR_QUESTIONS
+    log.notes.append(f"Repair: {len(found)} small edit(s) of the AI's rule fit every answer so far; "
+                     "each must now pass every check on new questions.")
+    return True
+
+
 def run_session(session: Session, student, ask=None, given: list[Problem] | None = None,
                 gate: bool = True) -> Transcript:
     """Ask questions until the tool reaches a result.
@@ -143,11 +213,14 @@ def run_session(session: Session, student, ask=None, given: list[Problem] | None
             # An admitted AI rule was later contradicted by the student's answers (or could
             # not be confirmed). Revise once, against a stricter still-hidden check.
             adm = log.admission
-            if not (adm and adm.admitted and log.revisions < max_revisions() and revise_after_contradiction()):
-                break
-            if not _revise(session, ask, gate, log, put, adm, since=log.admitted_at):
-                break
-            continue
+            if adm and adm.admitted and log.revisions < max_revisions() and revise_after_contradiction() \
+                    and _revise(session, ask, gate, log, put, adm, since=log.admitted_at):
+                _note_tried(log)
+                continue
+            _note_tried(log)
+            if repair_enabled() and _repair(session, log):
+                continue
+            break
         log.ai_attempted = True
         explored = 0
         while session.wrong_answers() < WRONG_ANSWERS_FOR_AI and explored < MAX_EXPLORE_QUESTIONS:
@@ -162,10 +235,14 @@ def run_session(session: Session, student, ask=None, given: list[Problem] | None
         log.notes.append(note)
         # Revision: the rule failed the student's answers. Collect new answers where it
         # failed, then let the AI try once more against a stricter, still-hidden check.
+        _note_tried(log)
         while (log.admission is not None and not log.admission.admitted
                and log.admission.reason.startswith(FAILED_ON_ANSWERS) and log.revisions < max_revisions()):
             _revise(session, ask, gate, log, put, log.admission, since=None)
+            _note_tried(log)
         if not (log.admission and log.admission.admitted):
+            if repair_enabled() and _repair(session, log):
+                continue
             break
         log.admitted_at = len(session.observations)
     log.status = session.status()

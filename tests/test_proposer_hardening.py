@@ -207,7 +207,19 @@ class ShapeCheckForAIRules(unittest.TestCase):
             Session("integers", diagnosis_needs_all_kinds="sometimes")
 
 
-class Efficiency(unittest.TestCase):
+class _RepairOff(unittest.TestCase):
+    """These tests measure revision and question budgets as they were written, before the
+    repair step existed, so they run with repair switched off. The repair step's own cost
+    is stated in RepairCost below."""
+
+    def setUp(self):
+        os.environ["MRI_REPAIR"] = "0"
+
+    def tearDown(self):
+        os.environ.pop("MRI_REPAIR", None)
+
+
+class Efficiency(_RepairOff):
     """Regression for the live Claude run on int_sign_of_first: admitted but wrong, then
     20 questions to reach 'no diagnosis'. Baseline before the change (stand-in writer that
     reproduces it, 20 seeds): mean 18.15 questions, max 21, never a false diagnosis."""
@@ -256,7 +268,19 @@ class Efficiency(unittest.TestCase):
         self.assertEqual(sum(r for _, r in runs), 5)
 
 
-class Revision(unittest.TestCase):
+class RepairCost(unittest.TestCase):
+    """With repair on (default), the stand-in that copies only part of the student's rule
+    (int_sign_of_first) goes from 0/20 right to 20/20 right, never wrong, at a stated cost:
+    about 29 questions on average, never more than 30 (17.5 and 22 with repair off)."""
+
+    def test_repair_turns_partial_rule_into_right_diagnosis_within_30_questions(self):
+        runs = ShapeCheckForAIRules()._sessions(fakes.partial, "ai", seeds=20, with_questions=True)
+        self.assertEqual(sum(w for w, _, _ in runs), 0)
+        self.assertEqual(sum(r for _, r, _ in runs), 20)
+        self.assertLessEqual(max(q for _, _, q in runs), 30)
+
+
+class Revision(_RepairOff):
     def test_revision_turns_unresolved_into_right_without_wrong(self):
         on = ShapeCheckForAIRules()._sessions(fakes.partial, "ai", seeds=10, hidden_id="int_plus_negative_is_plus")
         os.environ["MRI_MAX_REVISIONS"] = "0"
@@ -437,3 +461,53 @@ class LiveRun3Regression(unittest.TestCase):
         h = get_rule("sub_parts_separately")
         pool = Session("frac_sub", seed=0).pool
         self.assertTrue(any(all(answer(r, p) == h.predict(p) for p in pool) for r in rivals(ai)))
+
+
+class RepairStep(unittest.TestCase):
+    """When the AI's rule is one small edit away from the student's, the tool repairs it,
+    and the repaired rule must pass every check on NEW questions before it is named."""
+
+    def _run(self, code, hidden_id, seeds=range(0, 6), repair="1"):
+        import os
+        from mri.engine import Session
+        from mri.pipeline import run_session
+        from mri.rules import library
+        from mri.student import SimulatedStudent
+        os.environ["MRI_REPAIR"] = repair
+        try:
+            h = get_rule(hidden_id)
+            rules = [r for r in library(h.domain) if r.id != hidden_id]
+            right = wrong = 0
+            for seed in seeds:
+                s = Session(h.domain, rules=rules, seed=seed)
+                st = run_session(s, SimulatedStudent(h, 0.0, seed=seed),
+                                 ask=lambda p: f"DESCRIPTION: x\n```python\n{code}\n```").status
+                if st.state == "diagnosed" and all(st.rule.predict(p) == h.predict(p) for p in s.pool):
+                    right += 1
+                elif st.state in ("diagnosed", "no_misconception"):
+                    wrong += 1
+            return right, wrong
+        finally:
+            os.environ.pop("MRI_REPAIR", None)
+
+    def test_live_near_miss_is_repaired(self):
+        right, wrong = self._run(LiveRun3Regression.LIVE, "sub_parts_separately")
+        self.assertEqual(wrong, 0)
+        self.assertEqual(right, 6)
+
+    def test_without_repair_it_only_abstains(self):
+        right, wrong = self._run(LiveRun3Regression.LIVE, "sub_parts_separately", repair="0")
+        self.assertEqual((right, wrong), (0, 0))
+
+    def test_memorising_writer_never_repaired_into_a_diagnosis(self):
+        from mri.engine import Session
+        from mri.pipeline import run_session
+        from mri.rules import library
+        from mri.student import SimulatedStudent
+        for hidden_id in ("sub_parts_separately", "int_sign_of_first", "div_across_drop_remainder"):
+            h = get_rule(hidden_id)
+            rules = [r for r in library(h.domain) if r.id != hidden_id]
+            for seed in range(3):
+                s = Session(h.domain, rules=rules, seed=seed)
+                st = run_session(s, SimulatedStudent(h, 0.0, seed=seed), ask=fakes.cheat).status
+                self.assertNotIn(st.state, ("diagnosed", "no_misconception"))

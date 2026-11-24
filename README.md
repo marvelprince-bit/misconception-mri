@@ -6,7 +6,7 @@ Built for the Global AI Builder's Challenge (Devpost, November 21 to 28, 2026).
 
 Topics: adding and subtracting negative numbers; adding, subtracting (including mixed numbers), multiplying and dividing fractions.
 
-**Status, 23 Nov 2026:** engine, AI rule-writer (two live Claude runs by Emmanuel, plus stand-ins), demo, 75 unit tests and five evaluations work. Not yet done: a live run on the final design, a user interface, and any use by real students. Every number below comes from simulated students or from the published MaE examples.
+**Status, 23 Nov 2026:** engine, AI rule-writer (two live Claude runs by Emmanuel, plus stand-ins), demo, 82 unit tests and five evaluations work. Not yet done: a live run on the final design, a user interface, and any use by real students. Every number below comes from simulated students or from the published MaE examples.
 
 ## The problem
 
@@ -28,7 +28,11 @@ Research calls this the *correct answer trap*: AI tutors under-detect misconcept
    - runs only if it passes a whitelist (`mri/sandbox.py`: one function, plain arithmetic, no imports, loops or attribute access, so it always finishes),
    - must reproduce every answer it was shown,
    - must also predict wrong answers that were hidden from it,
-   - and then must pass the same prediction tests as any other rule.
+   - and then must pass the same prediction tests as any other rule,
+   - may not miss a single answer afterwards (no "careless slip" allowance: the AI wrote it to fit),
+   - must be checked on every shape of question not yet asked, even where all known methods agree,
+   - and must survive a **rival check** (`mri/rivals.py`): the tool makes small sandboxed edits of the rule's code (an extra or missing condition, abs() added or dropped, a flipped comparison). If any edit also fits every answer, it asks the question that separates them; if a rival survives, no diagnosis.
+   - **Repair:** if the AI's rule fails, the same small edits are tried as repaired rules. Any that fit every answer so far enter as new AI rules and must pass every check above on NEW questions before they can be named. (Switch off with `MRI_REPAIR=0`.)
 
    - and, before it can be named as the diagnosis, must match the student on **every shape of question not yet tested** (a kind of question, split by which number is larger in size), using the most contested question of each shape. This was added after a live Claude run: Claude wrote a rule that copied the student's "sign of the first number" rule on addition but did subtraction normally. It fit all 10 answers it was shown and a hidden one, because the student's subtraction answers happened to look correct, yet it is wrong on (−3) − (−5). The engine named it. With the shape check, a stand-in writer reproducing that failure is never named for that rule (0 of 40 sessions, previously 34 of 40); correct AI rules are still confirmed at the same rate, at a cost of about 4.6 extra questions on this path only.
 
@@ -47,14 +51,16 @@ Research calls this the *correct answer trap*: AI tutors under-detect misconcept
 
    On students 100 to 119, never used during development: 100% right and 0% wrong for the correct-rule writer, 42.1% right and 0% wrong for the partial one. The earlier 8.1% "wrong" was not only known look-alikes: it also included false all-clears for narrow rules (division and subtraction), removed by the finer kinds.
 
-   **Live runs, Claude Sonnet 5.5, one student per misconception (24 sessions each, run by Emmanuel):**
+   **Live development benchmark, Claude Sonnet 5.5, one student per misconception (24 sessions each).** These 24 cases are the benchmark the AI path was developed against: each run's failures were traced in the raw logs (`evidence/live/`) and fixed. Independence comes from new simulated students, held-out rules and outside evaluation, not from these 24 cases.
 
    | Run | Right | Wrong | No diagnosis | Mean questions |
    |---|---|---|---|---|
    | 1, before the revision step | 20 | 0 | 4 | 11.8 |
    | 2, with the revision step | 22 | 0 | 2 | 13.1 |
+   | 3, coincidence-free questions | 23 | **1** | 0 | 13.9 |
+   | 4, rival check, every shape, no slip allowance | 23 | 0 | 1 | 15.5 |
 
-   In both runs every admitted rule that was named matched the student's real rule on every question. The two unresolved cases in run 2 were traced in Claude's raw replies (`ai_raw_claude.jsonl`): both times Claude wrote the **simplest rule that fitted the answers it was shown**, and those answers were numerical coincidences. In division every example had bottoms whose ratio rounds down to 1, so "divide the tops only" fitted. In subtraction the fraction parts came out as whole numbers, so "subtract the wholes" fitted. The fix changes which questions are asked, not what is accepted: questions free of coincidences, and revision questions aimed where the failed rule makes a bold claim. A stand-in that replays Claude's own two decoy rules goes from 4/20 and 12/20 right to 20/20 and 20/20. The live rerun on the final design is pending. With 24 sessions, 24/24 would still be consistent with a true rate of roughly 86% or more, so fresh students (`--seed-offset 100`) are part of the validation.
+   In runs 1 and 2 every admitted rule that was named matched the student's real rule on every question. The two unresolved cases in run 2 were traced in Claude's raw replies (`ai_raw_claude.jsonl`): both times Claude wrote the **simplest rule that fitted the answers it was shown**, and those answers were numerical coincidences. In division every example had bottoms whose ratio rounds down to 1, so "divide the tops only" fitted. In subtraction the fraction parts came out as whole numbers, so "subtract the wholes" fitted. The fix changes which questions are asked, not what is accepted: questions free of coincidences, and revision questions aimed where the failed rule makes a bold claim. A stand-in that replays Claude's own two decoy rules goes from 4/20 and 12/20 right to 20/20 and 20/20. Run 3's one wrong diagnosis: Claude's rule applied the student's subtraction method only when regrouping was needed, and the final check skipped the question shapes where all known methods agree, which is exactly where the two differ. Run 4 added the rival check, every-shape checking and no slip allowance: the case ended in no diagnosis instead. The repair step was then added: given Claude's run-3 rule, stand-ins reach the student's real rule in 20 of 20 sessions, never a wrong one. A live run on this final design is pending. With 24 sessions, 24/24 would still be consistent with a true rate of roughly 86% or more, so fresh students (`--seed-offset 100`) are part of the validation.
 
    If the code is rejected for format or safety reasons (for example `/` instead of `//`, or type hints), the model gets **one** repair attempt, told only the rejection message. A rule that fails the student's answers is never retried, and hidden answers never appear in any prompt. Every prompt, reply and verdict is saved to `evidence/ai_raw_<writer>.jsonl`.
 
@@ -128,7 +134,7 @@ What is different here: the tool never labels a misconception from one answer. I
 Python 3.10 or newer. Nothing to install.
 
 ```bash
-python -m unittest discover -s tests              # 75 tests
+python -m unittest discover -s tests              # 82 tests
 python scripts/demo.py --list                     # every rule the tool knows
 python scripts/demo.py --student sub_smaller_from_larger
 python scripts/demo.py --student div_across_drop_remainder
