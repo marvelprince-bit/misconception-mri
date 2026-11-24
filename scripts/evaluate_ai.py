@@ -38,6 +38,31 @@ OUT = Path(__file__).resolve().parent.parent / "evidence"
 SHAPE_CHECK = "risk"
 
 
+class ReplayBook:
+    """Plays back a saved live run: for each prompt the code sends, returns the reply the
+    model gave to that EXACT prompt in the raw log. No API call. If the code sends a prompt
+    that is not in the log, the replay stops with an error, so a replay can never silently
+    differ from the run it reproduces."""
+
+    def __init__(self, path):
+        self.book, self.used, self.total = {}, 0, 0
+        for line in Path(path).read_text().splitlines():
+            entry = json.loads(line)
+            self.book.setdefault(entry["prompt"], []).append(entry["reply"])
+            self.total += 1
+
+    def ask(self, prompt):
+        replies = self.book.get(prompt)
+        if not replies:
+            raise SystemExit("Replay mismatch: the code sent a prompt that is not in the raw log. "
+                             "This log was made by a different version of the code or another seed.")
+        self.used += 1
+        return replies.pop(0)
+
+
+replay_book = None
+
+
 def run(writer: str, seeds: int, gate: bool, domains=DOMAINS, seed_offset: int = 0,
         hidden_set: str = "library") -> dict:
     from mri.heldout_rules import HELD_OUT_RULES_4
@@ -58,7 +83,10 @@ def run(writer: str, seeds: int, gate: bool, domains=DOMAINS, seed_offset: int =
                           "down": lambda: fakes.down, "messy": lambda: fakes.messy(hidden.id),
                           "partial": lambda: fakes.partial(hidden.id),
                           "occam": lambda: fakes.occam(hidden.id)}
-                ask = makers[writer]() if writer in makers else make_proposer(writer)
+                if writer.startswith("replay:"):
+                    ask = replay_book.ask
+                else:
+                    ask = makers[writer]() if writer in makers else make_proposer(writer)
                 session = Session(domain, rules=rules, seed=seed, diagnosis_needs_all_kinds=SHAPE_CHECK)
                 log = run_session(session, SimulatedStudent(hidden, 0.0, seed=seed), ask=ask, gate=gate)
                 adm = log.admission
@@ -67,8 +95,13 @@ def run(writer: str, seeds: int, gate: bool, domains=DOMAINS, seed_offset: int =
                 true_match = admitted and all(
                     adm.rule.predict(p) == hidden.predict(p) for p in session.pool)
                 final = log.status
+                # Score the rule actually NAMED, which since the repair step need not be the
+                # last rule the AI proposed (fixed 24 Nov: live run 7 named a repaired rule
+                # identical to the student's and was scored 'wrong' from the rejected one).
+                named_true = final.state == "diagnosed" and all(
+                    final.rule.predict(p) == hidden.predict(p) for p in session.pool)
                 if final.state == "diagnosed" and final.rule.source == "ai":
-                    result = "right" if true_match else "wrong"
+                    result = "right" if named_true else "wrong"
                 elif final.state in ("diagnosed", "no_misconception"):
                     result = "wrong"
                 else:
@@ -76,6 +109,9 @@ def run(writer: str, seeds: int, gate: bool, domains=DOMAINS, seed_offset: int =
                 rows.append({"domain": domain, "hidden": hidden.id, "seed": seed,
                              "ai_called": log.ai_attempted, "admitted": admitted,
                              "admitted_and_truly_right": true_match, "result": result,
+                             "named_rule": final.rule.id if final.state == "diagnosed" else None,
+                             "named_by_repair": bool(final.state == "diagnosed"
+                                                     and final.rule.id.startswith("ai_repair")),
                              "questions": log.questions_asked,
                              "attempts": adm.attempts if adm else 0,
                              "reason": adm.reason if adm else "; ".join(log.notes)})
@@ -100,7 +136,7 @@ def run(writer: str, seeds: int, gate: bool, domains=DOMAINS, seed_offset: int =
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--writer", choices=["oracle", "cheat", "down", "messy", "partial", "occam", "gemini", "claude"],
+    parser.add_argument("--writer", help="stand-in, live model, or replay:<raw log> (plays a saved live run back, no API calls)",
                         default="oracle")
     parser.add_argument("--seeds", type=int, default=20)
     parser.add_argument("--domain", choices=list(DOMAINS), help="test one topic only (fewer API calls)")
@@ -127,7 +163,14 @@ def main() -> None:
         sys.exit("Set GEMINI_API_KEY first (see .env.example). Nothing was run.")
 
     OUT.mkdir(exist_ok=True)
-    tag = args.writer + ("" if args.shape_check == "risk" else f"_{args.shape_check}check")
+    replay = args.writer.startswith("replay:")
+    if replay:
+        global replay_book
+        replay_book = ReplayBook(args.writer.split(":", 1)[1])
+        tag = "replay_" + Path(args.writer.split(":", 1)[1]).stem
+    else:
+        tag = args.writer
+    tag += ("" if args.shape_check == "risk" else f"_{args.shape_check}check")
     if args.hidden_set == "4":
         if args.writer in ("oracle", "occam", "messy", "partial"):
             sys.exit("Those stand-ins copy a known reference answer; set 4 has none. Use cheat, down or a live model.")
@@ -138,9 +181,13 @@ def main() -> None:
         sys.exit(f"evidence/ai_results_{tag}.json already exists. Evidence is never overwritten: "
                  f"rename or move it first (e.g. to evidence/archive/), then rerun.")
     raw = OUT / f"ai_raw_{tag}.jsonl"
-    raw.write_text("")  # every prompt, reply, extracted code and verdict; no keys
-    os.environ["MRI_RAW_LOG"] = str(raw)
-    gates = (True, False) if (args.both_gates or not live) else (True,)
+    if replay:
+        raw = Path(args.writer.split(":", 1)[1])  # replays write no new log
+        os.environ.pop("MRI_RAW_LOG", None)
+    else:
+        raw.write_text("")  # every prompt, reply, extracted code and verdict; no keys
+        os.environ["MRI_RAW_LOG"] = str(raw)
+    gates = (True, False) if (args.both_gates or not (live or replay)) else (True,)
     domains = (args.domain,) if args.domain else DOMAINS
     results = {("on" if gate else "off"): run(args.writer, args.seeds, gate, domains, args.seed_offset, args.hidden_set) for gate in gates}
     (OUT / f"ai_results_{tag}.json").write_text(json.dumps(results, indent=2))
@@ -160,6 +207,18 @@ def main() -> None:
     print("|" + "---|" * (len(keys) + 1))
     for name, r in results.items():
         print(f"| {name} | " + " | ".join(str(r[k]) for k in keys) + " |")
+    rows = results["on"]["rows"]
+    count = {k: sum(r["result"] == k for r in rows) for k in ("right", "wrong", "no_diagnosis")}
+    print(f"\nRESULT: {count['right']}/{len(rows)} right, {count['wrong']} wrong, "
+          f"{count['no_diagnosis']} no diagnosis "
+          f"({sum(r.get('named_by_repair', False) for r in rows)} named after a repair).")
+    for r in rows:
+        if r["result"] != "right":
+            print(f"  {r['hidden']}: {r['result']} after {r['questions']} questions")
+    if replay:
+        print(f"Replay: used {replay_book.used} of {replay_book.total} saved replies, no API calls.")
+        if replay_book.used != replay_book.total:
+            print("WARNING: not every saved reply was used; this replay differs from the original run.")
 
 
 if __name__ == "__main__":
