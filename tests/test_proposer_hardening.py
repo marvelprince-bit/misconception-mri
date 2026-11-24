@@ -328,6 +328,12 @@ class LiveRunRegressions(unittest.TestCase):
     def test_coincidental_questions_score_lower(self):
         from mri.engine import Session
         from mri.problems import Problem
-        tidy = Problem("frac_div", (5, 7, 1, 4))      # 7 // 4 = 1: hides the bottoms
-        varied = Problem("frac_div", (5, 8, 2, 3))    # 8 // 3 = 2
-        self.assertGreater(Session.genericity(varied), Session.genericity(tidy))
+        # Repeated numbers and repeated gaps make different procedures agree.
+        repeated = Problem("frac_div", (2, 4, 2, 4))
+        varied = Problem("frac_div", (5, 8, 2, 3))
+        self.assertGreater(Session.genericity(varied), Session.genericity(repeated))
+        # The live subtraction example 3 1/4 - 1 3/6 (equal tops gap, small numbers)
+        # scores below a question with no such coincidences.
+        live = Problem("frac_sub", (3, 1, 4, 1, 3, 6))
+        clean = Problem("frac_sub", (5, 3, 8, 2, 1, 6))
+        self.assertGreater(Session.genericity(clean), Session.genericity(live))
