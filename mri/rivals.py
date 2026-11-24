@@ -7,8 +7,9 @@ accident (both differences positive, say) can hide a missing "smaller from large
 
 So before an AI-written rule is named, the tool makes small edits to its code (add or
 drop abs(), swap a subtraction, flip a comparison, drop one condition, swap min and max,
-change a constant by one, and sign handling in pairs: abs() on two subtractions at
-once, on all of them, or on none). Every variation goes through the SAME sandbox
+change a constant by one, sign handling in pairs: abs() on two subtractions at once,
+on all of them, or on none, and a missing condition: 'v != 0' or 'v > 0' added to an
+if, for one argument or a matching pair such as both tops). Every variation goes through the SAME sandbox
 as the original. A variation that also fits every answer so far is a rival: the
 student's answers so far cannot tell the two apart. The engine then asks the question
 that separates the AI rule from the most rivals. The rule is named only when no rival
@@ -127,6 +128,31 @@ def _if_conditions(tree: ast.AST) -> list:
     return out
 
 
+def _added_guards(tree: ast.AST) -> list:
+    """The opposite of dropping a condition: an `if` that is missing one. Adds 'v != 0' or
+    'v > 0' to an if-condition, for one argument or a matching pair (both tops, both wholes:
+    w1/w2, n1/n2, d1/d2). Live run 24 Nov: Claude's subtraction rule lacked 'both numbers
+    have a fraction part' and misfired on a whole number minus a mixed number."""
+    try:
+        params = [a.arg for a in tree.body[0].args.args if a.arg != "op"]
+    except (AttributeError, IndexError):
+        return []
+    singles = [[v] for v in params]
+    pairs = [[a, b] for i, a in enumerate(params) for b in params[i + 1:] if a[:-1] == b[:-1] and a[:-1]]
+    out = []
+    for i, node in enumerate(ast.walk(tree)):
+        if not isinstance(node, (ast.If, ast.IfExp)):
+            continue
+        for names in singles + pairs:
+            for op in (ast.NotEq, ast.Gt):
+                def add(n, names=names, op=op):
+                    extra = [ast.Compare(ast.Name(v, ast.Load()), [op()], [ast.Constant(0)]) for v in names]
+                    n.test = ast.BoolOp(ast.And(), [n.test] + extra)
+                    return n
+                out.append((i, add))
+    return out
+
+
 def _set_test(node, value):
     node.test = ast.Constant(value)
     return node
@@ -141,7 +167,8 @@ def rivals(rule: Rule) -> list[Rule]:
     except SyntaxError:
         return []
     jobs = [[(i, e)] for i, n in enumerate(ast.walk(tree)) for e in _edits(n)] \
-        + [[job] for job in _if_conditions(tree)] + _sign_pairs(tree)
+        + [[job] for job in _if_conditions(tree)] + _sign_pairs(tree) \
+        + [[job] for job in _added_guards(tree)]
     seen, out = {rule.code.strip()}, []
     for group in jobs:
         try:

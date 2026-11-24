@@ -271,13 +271,15 @@ class Efficiency(_RepairOff):
 class RepairCost(unittest.TestCase):
     """With repair on (default), the stand-in that copies only part of the student's rule
     (int_sign_of_first) goes from 0/20 right to 20/20 right, never wrong, at a stated cost:
-    about 29 questions on average, never more than 30 (17.5 and 22 with repair off)."""
+    about 29 questions on average, never more than 33 (17.5 and 22 with repair off). The
+    limit was 30 until revisions could ask up to 3 more questions to find a new wrong
+    answer (MORE_FOR_WRONG, 24 Nov)."""
 
-    def test_repair_turns_partial_rule_into_right_diagnosis_within_30_questions(self):
+    def test_repair_turns_partial_rule_into_right_diagnosis_within_33_questions(self):
         runs = ShapeCheckForAIRules()._sessions(fakes.partial, "ai", seeds=20, with_questions=True)
         self.assertEqual(sum(w for w, _, _ in runs), 0)
         self.assertEqual(sum(r for _, r, _ in runs), 20)
-        self.assertLessEqual(max(q for _, _, q in runs), 30)
+        self.assertLessEqual(max(q for _, _, q in runs), 33)
 
 
 class Revision(_RepairOff):

@@ -16,6 +16,9 @@ REVISION_QUESTIONS = 3  # new answers collected before the AI may revise a rule 
 # Questions reserved for the rival check (mri/rivals.py): close variations of an admitted
 # AI rule that fit the answers equally well must be ruled out before the rule is named.
 RIVAL_QUESTIONS = 4
+# Extra questions a revision may ask, in the kinds where the student has been wrong, when
+# the targeted questions gave no new wrong answer to test the revised rule on.
+MORE_FOR_WRONG = 3
 # After a rule was admitted and then CONTRADICTED by the student, the contradicting answers
 # are already new evidence: questions stop as soon as this many NEW wrong answers are in hand
 # (one is needed as the fresh hidden answer), up to REVISION_QUESTIONS.
@@ -109,6 +112,19 @@ def _revise(session: Session, ask, gate: bool, log: "Transcript", put, failed: A
         if since is not None and new_wrong() >= REVISION_QUESTIONS_AFTER_CONTRADICTION:
             break
         question = session.explore_in_kinds(kinds, failed_rule) or session.explore_question()
+        if question is None:
+            break
+        put(question)
+    # The questions above can all come back right: after a contradiction, the failed rule's
+    # bold claims are often exactly where the student is right. A revision needs one new
+    # wrong answer the AI has never seen, so ask up to MORE_FOR_WRONG more questions in the
+    # kinds where this student HAS answered wrongly, stopping at the first new wrong answer.
+    wrong_kinds = {kind(o.problem) for o in session.observations
+                   if correct is not None and correct.predict(o.problem) != o.answer}
+    for _ in range(MORE_FOR_WRONG):
+        if new_wrong() >= 1 or not wrong_kinds:
+            break
+        question = session.explore_in_kinds(wrong_kinds, failed_rule)
         if question is None:
             break
         put(question)
