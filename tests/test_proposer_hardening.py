@@ -377,3 +377,15 @@ class UnknownLookAlikes(unittest.TestCase):
             p = Problem("integers", args)
             s.observations.append(Observation(p, -s.correct.predict(p), "diagnose"))
         self.assertTrue(s._error_patterns())
+
+
+class NoCorrectMethodInList(unittest.TestCase):
+    def test_session_without_correct_rule_does_not_crash(self):
+        from mri.engine import Session
+        from mri.pipeline import run_session
+        from mri.rules import library
+        from mri.student import SimulatedStudent
+        lib = [r for r in library("integers") if not r.is_correct]
+        s = Session("integers", rules=lib, seed=0)
+        log = run_session(s, SimulatedStudent(lib[0], 0.0, seed=0))
+        self.assertIn(log.status.state, ("diagnosed", "no_diagnosis", "no_misconception"))

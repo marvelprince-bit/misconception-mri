@@ -14,6 +14,7 @@ Every answer is stored as a Fraction, so 2/4 and 1/2 count as the same answer.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 from fractions import Fraction
 import re
 from math import gcd
@@ -117,6 +118,7 @@ def worksheet_pool(domain: str) -> list[Problem]:
     raise ValueError(f"unknown domain: {domain}")
 
 
+@lru_cache(maxsize=None)
 def kind(problem: Problem) -> str:
     """The structural kind of a question, independent of any rule.
 
@@ -177,6 +179,7 @@ def kind(problem: Problem) -> str:
     return f"bottoms share a factor, {order}"
 
 
+@lru_cache(maxsize=None)
 def shape(problem: Problem) -> str:
     """A finer version of kind(), used to re-test a wrong answer on a look-alike question.
 

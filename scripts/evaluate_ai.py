@@ -54,11 +54,11 @@ def run(writer: str, seeds: int, gate: bool, domains=DOMAINS, seed_offset: int =
         for hidden in hiddens:
             rules = [r for r in library(domain) if r.id != hidden.id]
             for seed in range(seed_offset, seed_offset + seeds):
-                ask = {"oracle": fakes.oracle(hidden.id), "cheat": fakes.cheat, "down": fakes.down,
-                       "messy": fakes.messy(hidden.id),
-                       "partial": fakes.partial(hidden.id) if writer == "partial" else None,
-                       "occam": fakes.occam(hidden.id),
-                       }.get(writer) or make_proposer(writer)
+                makers = {"oracle": lambda: fakes.oracle(hidden.id), "cheat": lambda: fakes.cheat,
+                          "down": lambda: fakes.down, "messy": lambda: fakes.messy(hidden.id),
+                          "partial": lambda: fakes.partial(hidden.id),
+                          "occam": lambda: fakes.occam(hidden.id)}
+                ask = makers[writer]() if writer in makers else make_proposer(writer)
                 session = Session(domain, rules=rules, seed=seed, diagnosis_needs_all_kinds=SHAPE_CHECK)
                 log = run_session(session, SimulatedStudent(hidden, 0.0, seed=seed), ask=ask, gate=gate)
                 adm = log.admission

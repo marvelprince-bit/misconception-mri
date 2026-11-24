@@ -415,22 +415,30 @@ class Session:
         correct = self.correct
         patterns = self._error_patterns()
         wrong = self._wrong_shape_counts()
-        best, best_key = [], None
-        for p in self.pool:
-            if p in asked or shape(p) in seen:
-                continue
-            claims_correct = correct is not None and rule.predict(p) == correct.predict(p)
-            key = (self._pattern_breaks(p, rule, patterns), self._closeness(shape(p), wrong),
-                   claims_correct, self.contestedness(p), self.genericity(p))
-            if best_key is None or key > best_key:
-                best, best_key = [p], key
-            elif key == best_key:
-                best.append(p)
+        # Lexicographic choice, done in stages so the costly 'how contested' count is only
+        # worked out for questions still tied on the cheap criteria (same result as one
+        # big sort key, in pool order).
+        stages = [
+            lambda p: self._pattern_breaks(p, rule, patterns),
+            lambda p: self._closeness(shape(p), wrong),
+            lambda p: correct is not None and rule.predict(p) == correct.predict(p),
+            self.contestedness,
+            self.genericity,
+        ]
+        best = [p for p in self.pool if p not in asked and shape(p) not in seen]
+        best_key = []
+        for score in stages:
+            if not best:
+                break
+            scored = [(score(p), p) for p in best]
+            top = max(v for v, _ in scored)
+            best = [p for v, p in scored if v == top]
+            best_key.append(top)
         if not best or (best_key[0] == 0 and best_key[3] < 2):
             return None
         problem = self.rng.choice(best)
         return Question(problem, "confirm", predicted=rule.predict(problem), predicted_rule=rule.id,
-                        why=f"risk check: a shape where this rule claims the correct answer ({shape(problem)})")
+                        why=f"risk check: the untested shape most likely to expose a look-alike rule ({shape(problem)})")
 
     # Simple ways a wrong answer can relate to the right one. If EVERY wrong answer seen
     # so far follows one of them, the student may apply it more widely than the leading
@@ -575,6 +583,7 @@ class Session:
         return sum(1 for o in self.observations if correct.predict(o.problem) != o.answer)
 
     @staticmethod
+    @lru_cache(maxsize=None)
     def genericity(problem: Problem) -> int:
         """How free a question is of numerical coincidences: distinct numbers, and distinct
         gaps between them. Coincidences (equal tops, tops that differ by as much as the
@@ -593,6 +602,8 @@ class Session:
     def _wrong_shape_counts(self) -> dict[str, int]:
         correct = self.correct
         counts: dict[str, int] = {}
+        if correct is None:  # a rule list without the correct method: nothing counts as wrong
+            return counts
         for o in self.observations:
             if correct.predict(o.problem) != o.answer:
                 counts[shape(o.problem)] = counts.get(shape(o.problem), 0) + 1

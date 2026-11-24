@@ -1,0 +1,119 @@
+{
+ "h4_int_subtract_smaller_from_larger": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 6.43,
+  "median_questions": 6.0
+ },
+ "h4_int_drops_first_minus_when_adding_positive": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 8.53,
+  "median_questions": 9.0
+ },
+ "h4_int_positive_plus_negative_keeps_plus": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 9.19,
+  "median_questions": 9.0
+ },
+ "h4_frac_scales_tops_by_own_bottom": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.5,
+  "no_diagnosis_pct": 99.5,
+  "mean_questions": 5.33,
+  "median_questions": 5.0
+ },
+ "h4_frac_same_bottoms_adds_bottoms": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 8,
+  "median_questions": 8.0
+ },
+ "h4_sub_whole_minus_mixed_brings_down_fraction": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 8.64,
+  "median_questions": 8.0
+ },
+ "h4_sub_improper_multiplies_by_top": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 5,
+  "median_questions": 5.0
+ },
+ "h4_sub_keeps_larger_bottom": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 5.11,
+  "median_questions": 5.0
+ },
+ "h4_mul_same_bottoms_keeps_bottom": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 5.01,
+  "median_questions": 5.0
+ },
+ "h4_mul_common_bottom_first": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 5.02,
+  "median_questions": 5.0
+ },
+ "h4_div_bigger_by_smaller": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 6.79,
+  "median_questions": 6.0
+ },
+ "h4_div_common_bottom_keeps_bottom": {
+  "sessions": 200,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 5,
+  "median_questions": 5.0
+ },
+ "ALL": {
+  "sessions": 2400,
+  "right_pct": 0.0,
+  "wrong_pct": 0.0,
+  "false_all_clear_pct": 0.0,
+  "no_diagnosis_pct": 100.0,
+  "mean_questions": 6.5,
+  "median_questions": 5.0
+ }
+}
