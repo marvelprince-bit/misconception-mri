@@ -40,6 +40,8 @@ class Admission:
     held_total: int = 0
     duplicate_of: str | None = None
     attempts: int = 1
+    hidden_obs: tuple = ()  # the answers kept from the AI for this check (never shown later)
+    code: str = ""
 
 
 # "cross_kind" (default): hide answers from a kind the AI does not see, when possible.
@@ -308,23 +310,54 @@ def _log_exchange(record: dict) -> None:
         fh.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
+def revision_prompt(base: str, previous_code: str) -> str:
+    """Second hypothesis after a rule failed the answers. Says only THAT it failed, never
+    which hidden answers it got wrong or what they were."""
+    return (
+        base + "\n\nA previous attempt wrote the rule below. It explained the answers it was given "
+        "but did not predict other answers from this student, so it is not the student's real "
+        "procedure. More of the student's answers are now included above.\n"
+        f"```python\n{previous_code}\n```\n"
+        "Write a new rule that explains ALL the answers above. Reply in the same form as before."
+    )
+
+
 def propose_and_admit(ask, domain: str, observations: list[Observation], correct: Rule,
                       pool: list[Problem], existing: list[Rule], gate: bool = True,
-                      seed: int = 0, rule_id: str = "ai_rule", max_repairs: int | None = None) -> Admission:
+                      seed: int = 0, rule_id: str = "ai_rule", max_repairs: int | None = None,
+                      keep_hidden: list[Observation] | None = None,
+                      fresh: list[Observation] | None = None,
+                      previous_code: str | None = None) -> Admission:
     """Full step: hide some answers, ask the AI, check its rule. `ask` is prompt -> reply text.
 
     If the code is rejected for format or safety reasons, or gives no answer on some
     questions, the AI gets ONE chance to fix it, told only the rejection message. A rule
-    that fails the answers (shown or hidden) is never retried: retrying until something
-    passes by luck would defeat the hidden-answer check.
+    that fails the answers is never simply retried: retrying against the same check until
+    something passes by luck would defeat it.
+
+    Revision (keep_hidden given): after a rule failed the answers and NEW answers were
+    collected (fresh), the AI may propose again. Every previously hidden answer stays
+    hidden, and one new wrong answer from `fresh` is hidden too, so the revised rule faces
+    a stricter check than the first one, on answers it has never seen.
     """
-    parts = split_fit_heldout(observations, correct, seed)
-    if parts is None:
-        return Admission(False, "Not attempted: fewer than 3 wrong answers, too little to learn a rule from.")
-    shown, hidden = parts
+    if keep_hidden is not None:
+        keep = list(keep_hidden)
+        new_wrong = [o for o in (fresh or []) if correct.predict(o.problem) != o.answer and o not in keep]
+        if not new_wrong:
+            return Admission(False, "Not revised: the new questions gave no new wrong answers to test on.")
+        hidden = keep + [random.Random(seed + 1).choice(new_wrong)]
+        shown = [o for o in observations if o not in hidden]
+        if sum(1 for o in shown if correct.predict(o.problem) != o.answer) < 3:
+            return Admission(False, "Not revised: too few wrong answers left to show the AI.")
+    else:
+        parts = split_fit_heldout(observations, correct, seed)
+        if parts is None:
+            return Admission(False, "Not attempted: fewer than 3 wrong answers, too little to learn a rule from.")
+        shown, hidden = parts
     if max_repairs is None:
         max_repairs = int(os.environ.get("MRI_MAX_REPAIRS", "1"))
-    prompt = build_prompt(domain, shown, correct)
+    base = build_prompt(domain, shown, correct)
+    prompt = revision_prompt(base, previous_code) if previous_code else base
     attempts = 0
     while True:
         attempts += 1
@@ -333,9 +366,12 @@ def propose_and_admit(ask, domain: str, observations: list[Observation], correct
         label = f"AI-written rule: {description}" if description else "AI-written rule (see code)."
         result = admit(code, domain, shown, hidden, pool, existing, gate, rule_id, label)
         result.attempts = attempts
-        _log_exchange({"domain": domain, "attempt": attempts, "prompt": prompt, "reply": reply,
+        result.hidden_obs = tuple(hidden)
+        result.code = code
+        _log_exchange({"domain": domain, "attempt": attempts, "revision": keep_hidden is not None,
+                       "prompt": prompt, "reply": reply,
                        "extracted_code": code, "admitted": result.admitted, "reason": result.reason,
                        "shown": len(shown), "hidden": len(hidden), "gate": gate})
         if result.admitted or attempts > max_repairs or not result.reason.startswith(REPAIRABLE):
             return result
-        prompt = repair_prompt(build_prompt(domain, shown, correct), code, result.reason)
+        prompt = repair_prompt(base, code, result.reason)

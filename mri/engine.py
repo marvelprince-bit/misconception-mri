@@ -538,6 +538,25 @@ class Session:
         return Question(self.rng.choice(best), "explore",
                         why="collecting varied answers to work out an unknown rule")
 
+    def explore_in_kinds(self, kinds: set[str]) -> Question | None:
+        """After an AI rule failed: a new question in the kinds where it failed (the kinds
+        of the hidden answers), most contested first. The hidden answers themselves are
+        never asked again or shown."""
+        asked = self._asked()
+        best, best_key = [], None
+        for p in self.pool:
+            if p in asked or kind(p) not in kinds:
+                continue
+            key = (shape(p) not in {shape(o.problem) for o in self.observations}, self.contestedness(p))
+            if best_key is None or key > best_key:
+                best, best_key = [p], key
+            elif key == best_key:
+                best.append(p)
+        if not best:
+            return None
+        return Question(self.rng.choice(best), "explore",
+                        why="more answers where the AI's first rule failed")
+
     # ---------------------------------------------------------- reporting
     def trap_report(self) -> dict:
         """Right answers, wrong rule: which wrong rules would give these same answers?"""

@@ -1,15 +1,22 @@
 """Run a whole tutoring session from first question to final result."""
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 
 from .engine import Question, Session, Status
-from .problems import Problem
+from .problems import Problem, kind
 from .proposer import Admission, ProposerUnavailable, propose_and_admit
 
 WRONG_ANSWERS_FOR_AI = 4  # wrong answers to collect before asking the AI for a rule
 MAX_EXPLORE_QUESTIONS = 6  # extra questions allowed to collect them
 EXTRA_QUESTIONS_FOR_AI_RULE = 5  # room to test an AI-written rule with fresh predictions
+REVISION_QUESTIONS = 3  # new answers collected before the AI may revise a failed rule
+FAILED_ON_ANSWERS = ("Rejected: predicted only", "Rejected: explains only")
+
+
+def max_revisions() -> int:
+    return int(os.environ.get("MRI_MAX_REVISIONS", "1"))
 
 
 @dataclass
@@ -18,6 +25,7 @@ class Transcript:
     notes: list[str] = field(default_factory=list)
     ai_attempted: bool = False
     ai_unavailable: bool = False
+    revisions: int = 0
     admission: Admission | None = None
     status: Status | None = None
 
@@ -26,14 +34,15 @@ class Transcript:
         return len(self.steps)
 
 
-def try_ai_rule(session: Session, ask, gate: bool = True, seed: int = 0) -> tuple[Admission | None, str]:
+def try_ai_rule(session: Session, ask, gate: bool = True, seed: int = 0,
+                **revision) -> tuple[Admission | None, str]:
     """Ask the AI for a rule and check it. Returns (admission or None, note for the tutor).
 
     If the AI service is down, returns (None, note): the session carries on without it.
     """
     try:
         result = propose_and_admit(ask, session.domain, session.observations, session.correct,
-                                   session.pool, session.rules, gate=gate, seed=seed)
+                                   session.pool, session.rules, gate=gate, seed=seed, **revision)
     except ProposerUnavailable as exc:
         return None, f"AI rule-writer unavailable. {exc} Continuing with known rules only."
     if result.admitted:
@@ -83,6 +92,24 @@ def run_session(session: Session, student, ask=None, given: list[Problem] | None
         log.admission, note = try_ai_rule(session, ask, gate)
         log.ai_unavailable = log.admission is None
         log.notes.append(note)
+        # Revision: the rule failed the student's answers. Collect new answers where it
+        # failed, then let the AI try once more against a stricter, still-hidden check.
+        while (log.admission is not None and not log.admission.admitted
+               and log.admission.reason.startswith(FAILED_ON_ANSWERS) and log.revisions < max_revisions()):
+            failed = log.admission
+            before = len(session.observations)
+            kinds = {kind(o.problem) for o in failed.hidden_obs}
+            for _ in range(REVISION_QUESTIONS):
+                question = session.explore_in_kinds(kinds) or session.explore_question()
+                if question is None:
+                    break
+                put(question)
+            fresh = session.observations[before:]
+            log.revisions += 1
+            log.admission, note = try_ai_rule(session, ask, gate, keep_hidden=list(failed.hidden_obs),
+                                              fresh=fresh, previous_code=failed.code)
+            log.ai_unavailable = log.admission is None
+            log.notes.append("Revision: " + note)
         if not (log.admission and log.admission.admitted):
             break
     log.status = session.status()
