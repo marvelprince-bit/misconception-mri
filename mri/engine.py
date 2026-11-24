@@ -113,6 +113,7 @@ class Session:
         # An AI-written rule may copy the student only where it saw wrong answers; a kind
         # where the student's rule happened to look correct can then hide the difference.
         diagnosis_needs_all_kinds: str = "risk",
+        check_rivals: bool = True,
     ):
         if policy not in ("disagreement", "random"):
             raise ValueError("policy must be 'disagreement' or 'random'")
@@ -134,6 +135,7 @@ class Session:
         self.min_questions = min_questions
         self.min_to_abstain = min_to_abstain
         self.max_questions = max_questions
+        self.check_rivals = check_rivals
         self.confirmations = confirmations
         self.confirm_mode = confirm_mode
         self.clear_needs_all_kinds = clear_needs_all_kinds
@@ -200,6 +202,12 @@ class Session:
             for r in self.rules:
                 if self.misses(r)[1]:
                     weights[r.id] = 0.0  # struck out: missed twice on the same shape of question
+                elif r.source == "ai" and any(r.predict(o.problem) != o.answer for o in self.observations):
+                    # AI-written rules get no slip allowance: the AI wrote the rule to fit, so
+                    # a miss means the rule is wrong (or the student slipped; either way the
+                    # safe result is no diagnosis, or a revision). Live run 23 Nov: a re-test
+                    # on coincidental numbers let a wrong AI rule through.
+                    weights[r.id] = 0.0
         total = sum(weights.values())
         return {k: w / total for k, w in weights.items()}
 
@@ -365,9 +373,9 @@ class Session:
         return self._contested_cache[1]
 
     def untested_shapes(self) -> set[str]:
-        """Contested shapes not tested yet (the ones an AI-written rule is checked on)."""
+        """Shapes not tested yet (the ones an AI-written rule is checked on)."""
         seen = {shape(o.problem) for o in self.observations}
-        return self._contested_shapes() - seen
+        return {shape(p) for p in self.pool} - seen
 
     def _shape_coverage_question(self, rule: Rule) -> Question | None:
         """For an AI-written rule: a question of a shape not tested yet, riskiest first.
@@ -380,16 +388,17 @@ class Session:
         seen = {shape(o.problem) for o in self.observations}
         wrong = self._wrong_shape_counts()
         correct = self.correct
-        live = self._contested_shapes()
         best, best_key = [], None
         for p in self.pool:
             if p in asked:
                 continue
             sh = shape(p)
-            if sh in seen or sh not in live:
+            if sh in seen:
                 continue
-            if self.contestedness(p) < 2:
-                continue  # every known method agrees here: the answer cannot separate them
+            # Every untested shape, even where all KNOWN methods agree: the student's rule is
+            # unknown, so agreement among known methods says nothing about it. (Skipping
+            # those shapes let a live Claude rule through on 23 Nov: it applied the student's
+            # subtraction method only when regrouping was needed.)
             claims_correct = correct is not None and rule.predict(p) == correct.predict(p)
             key = (claims_correct, self.contestedness(p), self._closeness(sh, wrong))
             if best_key is None or key > best_key:
@@ -477,6 +486,62 @@ class Session:
                 pass
         return n
 
+    def _live_rivals(self, rule: Rule) -> list:
+        """Variations of an AI rule that fit the student's answers at least as well as the
+        rule itself, and still differ from it on some question not asked yet."""
+        from .rivals import answer, rivals
+        cache = getattr(self, "_rival_cache", {})
+        self._rival_cache = cache
+        if rule.code not in cache:
+            cache[rule.code] = rivals(rule)
+        own_misses = sum(1 for o in self.observations if rule.predict(o.problem) != o.answer)
+        asked = self._asked()
+        alive = []
+        for r in cache[rule.code]:
+            misses = sum(1 for o in self.observations if answer(r, o.problem) != o.answer)
+            if misses > own_misses:
+                continue
+            alive.append(r)
+        if not alive:
+            return []
+        # Keep only rivals that differ from the rule somewhere it could still be tested.
+        differ = []
+        for r in alive:
+            for p in self.pool:
+                if p in asked:
+                    continue
+                mine = rule.predict(p)
+                if mine is not None and answer(r, p) not in (None, mine):
+                    differ.append(r)
+                    break
+        return differ
+
+    def _rival_question(self, rule: Rule, alive: list) -> Question | None:
+        """The unasked question on which the AI rule disagrees with the most surviving
+        rivals (ties: freest of coincidences)."""
+        from .rivals import answer
+        asked = self._asked()
+        best, best_key = [], None
+        for p in self.pool:
+            if p in asked:
+                continue
+            mine = rule.predict(p)
+            if mine is None:
+                continue
+            split = sum(1 for r in alive if answer(r, p) not in (None, mine))
+            if split == 0:
+                continue
+            key = (split, self.genericity(p))
+            if best_key is None or key > best_key:
+                best, best_key = [p], key
+            elif key == best_key:
+                best.append(p)
+        if not best:
+            return None
+        problem = self.rng.choice(best)
+        return Question(problem, "confirm", predicted=rule.predict(problem), predicted_rule=rule.id,
+                        why=f"rival check: {best_key[0]} close variation(s) of the AI rule answer differently here")
+
     def _needs_every_kind(self, rule: Rule) -> bool:
         mode = self.diagnosis_needs_all_kinds
         return not rule.is_correct and (mode == "all" or (mode in ("ai", "kinds", "risk") and rule.source == "ai"))
@@ -547,6 +612,18 @@ class Session:
                 if question is None:
                     confirmed = self._confirm_hits(rule) >= self.confirmations
                     question = None if confirmed else self._confirm_question(rule)
+                if question is None and rule.source == "ai" and self.check_rivals:
+                    # Last check before naming: no small variation of the rule may fit
+                    # the student's answers equally well (see mri/rivals.py).
+                    alive = self._live_rivals(rule)
+                    if alive:
+                        question = self._rival_question(rule, alive)
+                        confirmed = False
+                        if question is None or n >= self.max_questions:
+                            return status(
+                                "abstain", None, False,
+                                "An AI-written rule fits, but so does a close variation of it, and no "
+                                "question left can tell them apart. No diagnosis is given."), None
             else:
                 confirmed = self._confirm_hits(rule) >= self.confirmations
                 question = None if confirmed else self._confirm_question(rule)

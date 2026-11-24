@@ -13,6 +13,9 @@ WRONG_ANSWERS_FOR_AI = 4  # wrong answers to collect before asking the AI for a 
 MAX_EXPLORE_QUESTIONS = 6  # extra questions allowed to collect them
 EXTRA_QUESTIONS_FOR_AI_RULE = 5  # room to test an AI-written rule with fresh predictions
 REVISION_QUESTIONS = 3  # new answers collected before the AI may revise a rule that failed admission
+# Questions reserved for the rival check (mri/rivals.py): close variations of an admitted
+# AI rule that fit the answers equally well must be ruled out before the rule is named.
+RIVAL_QUESTIONS = 4
 # After a rule was admitted and then CONTRADICTED by the student, the contradicting answers
 # are already new evidence: questions stop as soon as this many NEW wrong answers are in hand
 # (one is needed as the fresh hidden answer), up to REVISION_QUESTIONS.
@@ -59,7 +62,8 @@ def try_ai_rule(session: Session, ask, gate: bool = True, seed: int = 0,
         session.add_rule(result.rule)
         # room for the fresh predictions plus one check per shape of question not tested yet
         untested = len(session.untested_shapes())
-        session.max_questions = len(session.observations) + EXTRA_QUESTIONS_FOR_AI_RULE + untested
+        session.max_questions = len(session.observations) + EXTRA_QUESTIONS_FOR_AI_RULE + untested \
+            + RIVAL_QUESTIONS
     return result, result.reason
 
 

@@ -389,3 +389,51 @@ class NoCorrectMethodInList(unittest.TestCase):
         s = Session("integers", rules=lib, seed=0)
         log = run_session(s, SimulatedStudent(lib[0], 0.0, seed=0))
         self.assertIn(log.status.state, ("diagnosed", "no_diagnosis", "no_misconception"))
+
+
+class LiveRun3Regression(unittest.TestCase):
+    """Live Claude run 3 (23 Nov, seed 0) named a wrong AI rule for sub_parts_separately:
+    Claude's rule applied the student's method only when regrouping was needed. Near-miss
+    rules like it must never be named."""
+
+    LIVE = ("def rule(w1, n1, d1, w2, n2, d2):\n"
+            "    if n1 > 0 and n2 > 0 and w1 > 0 and w2 > 0 and d1 != d2 and n1 * d2 < n2 * d1:\n"
+            "        dd = abs(d1 - d2)\n        an = abs(n1 - n2)\n        whole = w1 - w2\n"
+            "        return (whole * dd + an, dd)\n    first = w1 * d1 + n1\n    second = w2 * d2 + n2\n"
+            "    return (first * d2 - second * d1, d1 * d2)")
+    NO_ABS = ("def rule(w1, n1, d1, w2, n2, d2):\n"
+              "    if w1 > 0 and w2 > 0 and n1 > 0 and n2 > 0 and d1 != d2:\n"
+              "        return ((w1 - w2) * (d1 - d2) + (n1 - n2), d1 - d2)\n"
+              "    return ((w1 * d1 + n1) * d2 - (w2 * d2 + n2) * d1, d1 * d2)")
+
+    def _named_wrong(self, code, seeds=range(0, 10)):
+        from mri.engine import Session
+        from mri.pipeline import run_session
+        from mri.rules import library
+        from mri.student import SimulatedStudent
+        h = get_rule("sub_parts_separately")
+        rules = [r for r in library("frac_sub") if r.id != h.id]
+        bad = 0
+        for seed in seeds:
+            s = Session("frac_sub", rules=rules, seed=seed)
+            st = run_session(s, SimulatedStudent(h, 0.0, seed=seed),
+                             ask=lambda p: f"DESCRIPTION: x\n```python\n{code}\n```").status
+            if st.state in ("diagnosed", "no_misconception") and not (
+                    st.state == "diagnosed" and all(st.rule.predict(p) == h.predict(p) for p in s.pool)):
+                bad += 1
+        return bad
+
+    def test_live_claude_rule_not_named(self):
+        self.assertEqual(self._named_wrong(self.LIVE), 0)
+
+    def test_missing_abs_rule_not_named(self):
+        self.assertEqual(self._named_wrong(self.NO_ABS), 0)
+
+    def test_rivals_include_the_true_rule(self):
+        from mri.rivals import answer, rivals
+        from mri.sandbox import compile_rule
+        from mri.engine import Session
+        ai = compile_rule(self.LIVE, "frac_sub")
+        h = get_rule("sub_parts_separately")
+        pool = Session("frac_sub", seed=0).pool
+        self.assertTrue(any(all(answer(r, p) == h.predict(p) for p in pool) for r in rivals(ai)))
