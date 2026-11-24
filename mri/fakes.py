@@ -206,3 +206,46 @@ def partial(rule_id: str):
                 + indented + "\n    if op == '+':\n        return a + b\n    return a - b")
         return f"DESCRIPTION: copies the pattern where answers were wrong\n```python\n{code}\n```"
     return ask
+
+
+# Decoy rules taken verbatim from the live Claude run (evidence: ai_raw_claude.jsonl,
+# 23 Nov 2026). Each fitted the answers Claude was shown, because those answers were
+# numerical coincidences, but is not the student's real procedure.
+OCCAM_DECOYS = {
+    "div_across_drop_remainder": [
+        "def rule(n1, d1, n2, d2):\n    if d1 >= d2:\n        return (n1, n2)\n    return (n1 * d2, d1 * n2)",
+        "def rule(n1, d1, n2, d2):\n    if d1 > d2:\n        return (n1, n2)\n    return (n1 * d2, d1 * n2)",
+    ],
+    "sub_parts_separately": [
+        "def rule(w1, n1, d1, w2, n2, d2):\n    first = w1 * d1 + n1\n    second = w2 * d2 + n2\n"
+        "    if (w1 == 0 and w2 == 0) or d1 == d2:\n        return (first * d2 - second * d1, d1 * d2)\n"
+        "    extra = 0\n    if n1 < n2:\n        extra = 1\n    return (w1 - w2 + extra, 1)",
+    ],
+}
+
+
+def occam(rule_id: str):
+    """A writer that, like the live model, returns the SIMPLEST rule consistent with the
+    answers it is shown: the decoys above first, the true rule only if every decoy is
+    contradicted by the shown answers. It never sees hidden answers. Used to test whether
+    question choice gives the AI data that rules the decoys out."""
+    from .problems import parse_answer, parse_problem_text
+    from .rules import get_rule
+    from .sandbox import compile_rule
+
+    domain = get_rule(rule_id).domain
+    candidates = OCCAM_DECOYS.get(rule_id, []) + [REFERENCE_CODE[rule_id]]
+
+    def ask(prompt: str) -> str:
+        body = prompt.split("Student's answers:")[1].split("Reply in exactly")[0]
+        shown = []
+        for line in body.splitlines():
+            m = re.match(r"^\s+(.+?)\s+student wrote (.+?)\s+\(correct:", line)
+            if m:
+                shown.append((parse_problem_text(domain, m.group(1)), parse_answer(m.group(2))))
+        for code in candidates:
+            rule = compile_rule(code, domain)
+            if all(rule.predict(p) == a for p, a in shown):
+                return f"DESCRIPTION: simplest rule that fits\n```python\n{code}\n```"
+        return f"DESCRIPTION: fallback\n```python\n{candidates[-1]}\n```"
+    return ask

@@ -7,13 +7,15 @@ from dataclasses import dataclass, field
 from .engine import Question, Session, Status
 from .problems import Problem, kind
 from .proposer import Admission, ProposerUnavailable, propose_and_admit
+from .sandbox import UnsafeRule, compile_rule
 
 WRONG_ANSWERS_FOR_AI = 4  # wrong answers to collect before asking the AI for a rule
 MAX_EXPLORE_QUESTIONS = 6  # extra questions allowed to collect them
 EXTRA_QUESTIONS_FOR_AI_RULE = 5  # room to test an AI-written rule with fresh predictions
 REVISION_QUESTIONS = 3  # new answers collected before the AI may revise a rule that failed admission
 # After a rule was admitted and then CONTRADICTED by the student, the contradicting answers
-# are already new evidence, so one more question (for a fresh hidden answer) is enough.
+# are already new evidence: questions stop as soon as this many NEW wrong answers are in hand
+# (one is needed as the fresh hidden answer), up to REVISION_QUESTIONS.
 REVISION_QUESTIONS_AFTER_CONTRADICTION = 1
 FAILED_ON_ANSWERS = ("Rejected: predicted only", "Rejected: explains only")
 
@@ -74,9 +76,22 @@ def _revise(session: Session, ask, gate: bool, log: "Transcript", put, failed: A
         kinds = {kind(o.problem) for o in failed.hidden_obs}
     before = len(session.observations) if since is None else since
     start = len(session.observations)
-    n_new = REVISION_QUESTIONS if since is None else REVISION_QUESTIONS_AFTER_CONTRADICTION
-    for _ in range(n_new):
-        question = session.explore_in_kinds(kinds) or session.explore_question()
+    try:
+        failed_rule = rule or compile_rule(failed.code, session.domain, "failed_ai_rule")
+    except UnsafeRule:
+        failed_rule = None
+    correct = session.correct
+
+    def new_wrong() -> int:
+        return sum(1 for o in session.observations[start:] if correct.predict(o.problem) != o.answer)
+
+    # Up to REVISION_QUESTIONS new questions where the rule failed, aimed at its bold claims.
+    # After a contradiction, stop as soon as one new wrong answer is in hand (it becomes the
+    # fresh hidden answer); after a failed admission, collect all of them (more data).
+    for _ in range(REVISION_QUESTIONS):
+        if since is not None and new_wrong() >= REVISION_QUESTIONS_AFTER_CONTRADICTION:
+            break
+        question = session.explore_in_kinds(kinds, failed_rule) or session.explore_question()
         if question is None:
             break
         put(question)

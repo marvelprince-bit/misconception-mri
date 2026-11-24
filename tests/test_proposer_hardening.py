@@ -290,3 +290,44 @@ class Revision(unittest.TestCase):
             line = f"{o.problem.text()}  student wrote {format_answer(o.answer)}"
             for p in prompts:
                 self.assertNotIn(line, p)
+
+
+class LiveRunRegressions(unittest.TestCase):
+    """The two cases left unresolved in the live Claude run (23 Nov, seed 0). Claude wrote the
+    simplest rule that fitted coincidental answers. The 'occam' stand-in reproduces that with
+    Claude's own decoy rules; better question choice must let the true rule through."""
+
+    def _run(self, hidden_id, seeds=10):
+        from mri.engine import Session
+        from mri.pipeline import run_session
+        from mri.rules import library
+        from mri.student import SimulatedStudent
+        h = get_rule(hidden_id)
+        rules = [r for r in library(h.domain) if r.id != hidden_id]
+        right = wrong = 0
+        for seed in range(seeds):
+            s = Session(h.domain, rules=rules, seed=seed)
+            st = run_session(s, SimulatedStudent(h, 0.0, seed=seed), ask=fakes.occam(hidden_id)).status
+            if st.state in ("diagnosed", "no_misconception"):
+                if st.state == "diagnosed" and all(st.rule.predict(p) == h.predict(p) for p in s.pool):
+                    right += 1
+                else:
+                    wrong += 1
+        return right, wrong
+
+    def test_division_drop_remainder_recovered(self):
+        right, wrong = self._run("div_across_drop_remainder")
+        self.assertEqual(wrong, 0)
+        self.assertEqual(right, 10)
+
+    def test_subtraction_parts_separately_recovered(self):
+        right, wrong = self._run("sub_parts_separately")
+        self.assertEqual(wrong, 0)
+        self.assertEqual(right, 10)
+
+    def test_coincidental_questions_score_lower(self):
+        from mri.engine import Session
+        from mri.problems import Problem
+        tidy = Problem("frac_div", (5, 7, 1, 4))      # 7 // 4 = 1: hides the bottoms
+        varied = Problem("frac_div", (5, 8, 2, 3))    # 8 // 3 = 2
+        self.assertGreater(Session.genericity(varied), Session.genericity(tidy))

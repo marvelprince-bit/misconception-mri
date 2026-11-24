@@ -57,6 +57,7 @@ class Observation:
     purpose: str = "given"  # "given" | "diagnose" | "confirm"
     predicted: Fraction | None = None  # written down BEFORE a confirm question is asked
     predicted_rule: str | None = None
+    question_why: str = ""
 
 
 @dataclass
@@ -111,12 +112,12 @@ class Session:
         # of question? "ai": only for AI-written rules (default), "all": every rule, "none".
         # An AI-written rule may copy the student only where it saw wrong answers; a kind
         # where the student's rule happened to look correct can then hide the difference.
-        diagnosis_needs_all_kinds: str = "ai",
+        diagnosis_needs_all_kinds: str = "risk",
     ):
         if policy not in ("disagreement", "random"):
             raise ValueError("policy must be 'disagreement' or 'random'")
-        if diagnosis_needs_all_kinds not in ("ai", "all", "none"):
-            raise ValueError("diagnosis_needs_all_kinds must be 'ai', 'all' or 'none'")
+        if diagnosis_needs_all_kinds not in ("ai", "all", "none", "kinds", "risk"):
+            raise ValueError("diagnosis_needs_all_kinds must be 'ai', 'risk', 'kinds', 'all' or 'none'")
         if confirm_mode not in ("novel", "novel_prefer_solo", "solo"):
             raise ValueError("confirm_mode must be 'novel', 'novel_prefer_solo' or 'solo'")
         self.domain = domain
@@ -162,7 +163,8 @@ class Session:
     # ------------------------------------------------------------ evidence
     def record(self, problem: Problem, answer: Fraction, question: Question | None = None) -> None:
         if question is not None:
-            obs = Observation(problem, answer, question.purpose, question.predicted, question.predicted_rule)
+            obs = Observation(problem, answer, question.purpose, question.predicted, question.predicted_rule,
+                              question.why)
         else:
             obs = Observation(problem, answer)
         self.observations.append(obs)
@@ -393,9 +395,32 @@ class Session:
         return Question(problem, "confirm", predicted=rule.predict(problem), predicted_rule=rule.id,
                         why=f"checking an AI-written rule on a shape not tested yet ({shape(problem)})")
 
+    def _risk_question(self, rule: Rule) -> Question | None:
+        """The riskiest untested question for a known rule: a shape not tested yet (for
+        integers a shape also records which number is larger, so whether the answer
+        crosses zero), where the rule claims the correct answer, most contested first."""
+        asked = self._asked()
+        seen = {shape(o.problem) for o in self.observations}
+        correct = self.correct
+        best, best_key = [], None
+        for p in self.pool:
+            if p in asked or shape(p) in seen:
+                continue
+            claims_correct = correct is not None and rule.predict(p) == correct.predict(p)
+            key = (claims_correct, self.contestedness(p))
+            if best_key is None or key > best_key:
+                best, best_key = [p], key
+            elif key == best_key:
+                best.append(p)
+        if not best or best_key[1] < 2:
+            return None
+        problem = self.rng.choice(best)
+        return Question(problem, "confirm", predicted=rule.predict(problem), predicted_rule=rule.id,
+                        why=f"risk check: a shape where this rule claims the correct answer ({shape(problem)})")
+
     def _needs_every_kind(self, rule: Rule) -> bool:
         mode = self.diagnosis_needs_all_kinds
-        return not rule.is_correct and (mode == "all" or (mode == "ai" and rule.source == "ai"))
+        return not rule.is_correct and (mode == "all" or (mode in ("ai", "kinds", "risk") and rule.source == "ai"))
 
     def _confirm_hits(self, rule: Rule) -> int:
         """Predictions made before the answer that came true. For a wrong rule, only
@@ -434,6 +459,24 @@ class Session:
             elif rule.is_correct and self.clear_needs_all_kinds:
                 question = self._coverage_question(rule)
                 confirmed = question is None
+            elif self.diagnosis_needs_all_kinds == "risk" and not rule.is_correct and rule.source != "ai" \
+                    and self._confirm_hits(rule) >= self.confirmations \
+                    and not any(o.question_why.startswith("risk check") for o in self.observations
+                                if o.predicted_rule == rule.id) \
+                    and self._risk_question(rule) is not None:
+                # Known rule, confirmed by predictions: ONE extra question, the riskiest one
+                # (an untested kind where the rule claims the correct answer and other methods
+                # disagree), so a look-alike of a rule missing from the list is caught.
+                question = self._risk_question(rule)
+                confirmed = False
+            elif self.diagnosis_needs_all_kinds == "kinds" and not rule.is_correct and rule.source != "ai" \
+                    and self._coverage_question(rule) is not None \
+                    and self._confirm_hits(rule) >= self.confirmations:
+                # Known rule, already confirmed by predictions: also check each untested KIND
+                # once (the most contested question), so a look-alike of a rule missing from
+                # the list is not named on the strength of one kind of question.
+                question = self._coverage_question(rule)
+                confirmed = False
             elif self._needs_every_kind(rule):
                 # AI-written rule: check every untested shape FIRST, riskiest first, so a
                 # rule that only copied part of the student's procedure fails early. Kinds
@@ -480,6 +523,17 @@ class Session:
         correct = self.correct
         return sum(1 for o in self.observations if correct.predict(o.problem) != o.answer)
 
+    @staticmethod
+    def genericity(problem: Problem) -> int:
+        """How free a question is of numerical coincidences: distinct numbers, and distinct
+        gaps between them. Coincidences (equal tops, tops that differ by as much as the
+        bottoms, bottoms whose ratio rounds to 1) make different procedures give the same
+        answer, so an AI shown such answers cannot tell which procedure the student uses."""
+        nums = [abs(x) for x in problem.args if isinstance(x, int) and x != 0]
+        gaps = {abs(a - b) for i, a in enumerate(nums) for b in nums[i + 1:]}
+        ratios = {a // b for a in nums for b in nums if b and a >= b and a != b}
+        return len(set(nums)) + len(gaps) + len(ratios - {1})
+
     def contestedness(self, problem: Problem) -> int:
         """How many different answers the known rules (and the correct method) give here.
         High values are the questions where wrong procedures split apart."""
@@ -524,11 +578,11 @@ class Session:
             if must_collect:
                 if sh not in wrong:
                     continue
-                key = (-wrong[sh], self.contestedness(p))  # least-asked wrong shape first
+                key = (-wrong[sh], self.contestedness(p), self.genericity(p))  # least-asked wrong shape first
             else:
                 if wrong.get(sh, 0) >= 2:
                     continue
-                key = (sh not in seen, self._closeness(sh, wrong), self.contestedness(p))
+                key = (sh not in seen, self._closeness(sh, wrong), self.contestedness(p), self.genericity(p))
             if best_key is None or key > best_key:
                 best, best_key = [p], key
             elif key == best_key:
@@ -538,16 +592,26 @@ class Session:
         return Question(self.rng.choice(best), "explore",
                         why="collecting varied answers to work out an unknown rule")
 
-    def explore_in_kinds(self, kinds: set[str]) -> Question | None:
+    def explore_in_kinds(self, kinds: set[str], failed: Rule | None = None) -> Question | None:
         """After an AI rule failed: a new question in the kinds where it failed (the kinds
-        of the hidden answers), most contested first. The hidden answers themselves are
-        never asked again or shown."""
+        of the hidden answers, or where the student contradicted it). The hidden answers
+        themselves are never asked again or shown.
+
+        Preference: questions where the failed rule makes a BOLD claim (predicts a wrong
+        answer, different from the correct one), so whatever the student answers tells the
+        AI something new; then the most contested; then free of numerical coincidences."""
         asked = self._asked()
+        seen = {shape(o.problem) for o in self.observations}
+        correct = self.correct
         best, best_key = [], None
         for p in self.pool:
             if p in asked or kind(p) not in kinds:
                 continue
-            key = (shape(p) not in {shape(o.problem) for o in self.observations}, self.contestedness(p))
+            bold = False
+            if failed is not None and correct is not None:
+                pred = failed.predict(p)
+                bold = pred is not None and pred != correct.predict(p)
+            key = (bold, shape(p) not in seen, self.contestedness(p), self.genericity(p))
             if best_key is None or key > best_key:
                 best, best_key = [p], key
             elif key == best_key:

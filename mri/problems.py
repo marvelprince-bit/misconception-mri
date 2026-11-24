@@ -133,12 +133,25 @@ def kind(problem: Problem) -> str:
     if problem.domain == "frac_sub":
         w1, n1, d1, w2, n2, d2 = problem.args
         if w1 == 0 and w2 == 0:
-            return "two plain fractions, " + ("same bottoms" if d1 == d2 else "different bottoms")
+            # How the bottoms relate decides which shortcuts give the right answer by luck,
+            # as in fraction addition.
+            if d1 == d2:
+                rel = "same bottoms"
+            elif d1 % d2 == 0 or d2 % d1 == 0:
+                rel = "one bottom divides the other"
+            elif gcd(d1, d2) > 1:
+                rel = "bottoms share a factor"
+            else:
+                rel = "bottoms share no factor"
+            return f"two plain fractions, {rel}"
         if n1 == 0:
             return "whole number minus " + ("mixed number" if w2 > 0 else "fraction")
         bottoms = "same bottoms" if d1 == d2 else "different bottoms"
         regroup = ", regrouping needed" if Fraction(n1, d1) < Fraction(n2, d2) else ""
-        return f"mixed number, {bottoms}{regroup}"
+        # Two mixed numbers vs mixed number minus a plain fraction: procedures that work on
+        # whole and fraction parts separately only show up when both sides have both parts.
+        first = "two mixed numbers" if (w2 > 0 and n2 > 0) else "mixed number minus fraction"
+        return f"{first}, {bottoms}{regroup}"
     if problem.domain == "frac_mul":
         w1, n1, d1, w2, n2, d2 = problem.args
         if n1 == 0 or n2 == 0:
@@ -147,6 +160,10 @@ def kind(problem: Problem) -> str:
     if problem.domain == "frac_div":
         n1, d1, n2, d2 = problem.args
         bottoms = "same bottoms" if d1 == d2 else "different bottoms"
+        # Dividing straight across (top by top, bottom by bottom) is only possible when the
+        # first top and bottom are at least as large as the second's.
+        if n1 < n2 or d1 < d2:
+            return f"{bottoms}, cannot divide straight across"
         exact = n1 % n2 == 0 and d1 % d2 == 0
         return f"{bottoms}, " + ("tops and bottoms divide evenly" if exact else "tops or bottoms leave a remainder")
     _, d1, _, d2 = problem.args
