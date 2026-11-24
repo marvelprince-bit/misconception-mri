@@ -11,12 +11,19 @@ from .proposer import Admission, ProposerUnavailable, propose_and_admit
 WRONG_ANSWERS_FOR_AI = 4  # wrong answers to collect before asking the AI for a rule
 MAX_EXPLORE_QUESTIONS = 6  # extra questions allowed to collect them
 EXTRA_QUESTIONS_FOR_AI_RULE = 5  # room to test an AI-written rule with fresh predictions
-REVISION_QUESTIONS = 3  # new answers collected before the AI may revise a failed rule
+REVISION_QUESTIONS = 3  # new answers collected before the AI may revise a rule that failed admission
+# After a rule was admitted and then CONTRADICTED by the student, the contradicting answers
+# are already new evidence, so one more question (for a fresh hidden answer) is enough.
+REVISION_QUESTIONS_AFTER_CONTRADICTION = 1
 FAILED_ON_ANSWERS = ("Rejected: predicted only", "Rejected: explains only")
 
 
 def max_revisions() -> int:
     return int(os.environ.get("MRI_MAX_REVISIONS", "1"))
+
+
+def revise_after_contradiction() -> bool:
+    return os.environ.get("MRI_REVISE_CONTRADICTED", "1") == "1"
 
 
 @dataclass
@@ -26,6 +33,7 @@ class Transcript:
     ai_attempted: bool = False
     ai_unavailable: bool = False
     revisions: int = 0
+    admitted_at: int = 0  # number of answers recorded when the AI rule was admitted
     admission: Admission | None = None
     status: Status | None = None
 
@@ -53,6 +61,38 @@ def try_ai_rule(session: Session, ask, gate: bool = True, seed: int = 0,
     return result, result.reason
 
 
+def _revise(session: Session, ask, gate: bool, log: "Transcript", put, failed: Admission,
+            since: int | None) -> bool:
+    """One revision. `since` is set when an ADMITTED rule was later contradicted: the new
+    questions then target the kinds where the student contradicted it. Otherwise they
+    target the kinds of the hidden answers it failed. Returns True if a rule was admitted."""
+    rule = next((r for r in session.rules if r.source == "ai" and r.code == failed.code), None)
+    if since is not None and rule is not None:
+        missed = [o for o in session.observations[since:] if rule.predict(o.problem) != o.answer]
+        kinds = {kind(o.problem) for o in missed} or {kind(o.problem) for o in failed.hidden_obs}
+    else:
+        kinds = {kind(o.problem) for o in failed.hidden_obs}
+    before = len(session.observations) if since is None else since
+    start = len(session.observations)
+    n_new = REVISION_QUESTIONS if since is None else REVISION_QUESTIONS_AFTER_CONTRADICTION
+    for _ in range(n_new):
+        question = session.explore_in_kinds(kinds) or session.explore_question()
+        if question is None:
+            break
+        put(question)
+    fresh = session.observations[before:]
+    log.revisions += 1
+    session.max_questions = max(session.max_questions, len(session.observations))
+    log.admission, note = try_ai_rule(session, ask, gate, keep_hidden=list(failed.hidden_obs), fresh=fresh,
+                                      previous_code=failed.code, rule_id=f"ai_rule_{log.revisions + 1}")
+    log.ai_unavailable = log.admission is None
+    log.notes.append("Revision: " + note)
+    if log.admission and log.admission.admitted:
+        log.admitted_at = start
+        return True
+    return False
+
+
 def run_session(session: Session, student, ask=None, given: list[Problem] | None = None,
                 gate: bool = True) -> Transcript:
     """Ask questions until the tool reaches a result.
@@ -78,8 +118,17 @@ def run_session(session: Session, student, ask=None, given: list[Problem] | None
             put(question)
             continue
         stuck = session.status().state in ("abstain", "inconclusive")
-        if not (stuck and ask is not None and not log.ai_attempted):
+        if not (stuck and ask is not None):
             break
+        if log.ai_attempted:
+            # An admitted AI rule was later contradicted by the student's answers (or could
+            # not be confirmed). Revise once, against a stricter still-hidden check.
+            adm = log.admission
+            if not (adm and adm.admitted and log.revisions < max_revisions() and revise_after_contradiction()):
+                break
+            if not _revise(session, ask, gate, log, put, adm, since=log.admitted_at):
+                break
+            continue
         log.ai_attempted = True
         explored = 0
         while session.wrong_answers() < WRONG_ANSWERS_FOR_AI and explored < MAX_EXPLORE_QUESTIONS:
@@ -96,21 +145,9 @@ def run_session(session: Session, student, ask=None, given: list[Problem] | None
         # failed, then let the AI try once more against a stricter, still-hidden check.
         while (log.admission is not None and not log.admission.admitted
                and log.admission.reason.startswith(FAILED_ON_ANSWERS) and log.revisions < max_revisions()):
-            failed = log.admission
-            before = len(session.observations)
-            kinds = {kind(o.problem) for o in failed.hidden_obs}
-            for _ in range(REVISION_QUESTIONS):
-                question = session.explore_in_kinds(kinds) or session.explore_question()
-                if question is None:
-                    break
-                put(question)
-            fresh = session.observations[before:]
-            log.revisions += 1
-            log.admission, note = try_ai_rule(session, ask, gate, keep_hidden=list(failed.hidden_obs),
-                                              fresh=fresh, previous_code=failed.code)
-            log.ai_unavailable = log.admission is None
-            log.notes.append("Revision: " + note)
+            _revise(session, ask, gate, log, put, log.admission, since=None)
         if not (log.admission and log.admission.admitted):
             break
+        log.admitted_at = len(session.observations)
     log.status = session.status()
     return log

@@ -364,7 +364,8 @@ def propose_and_admit(ask, domain: str, observations: list[Observation], correct
         reply = ask(prompt)  # may raise ProposerUnavailable
         code, description = extract(reply)
         label = f"AI-written rule: {description}" if description else "AI-written rule (see code)."
-        result = admit(code, domain, shown, hidden, pool, existing, gate, rule_id, label)
+        result = admit(code, domain, shown, hidden, pool,
+                       [r for r in existing if r.source != "ai"], gate, rule_id, label)
         result.attempts = attempts
         result.hidden_obs = tuple(hidden)
         result.code = code

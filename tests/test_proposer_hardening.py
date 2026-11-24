@@ -212,12 +212,23 @@ class Efficiency(unittest.TestCase):
     20 questions to reach 'no diagnosis'. Baseline before the change (stand-in writer that
     reproduces it, 20 seeds): mean 18.15 questions, max 21, never a false diagnosis."""
 
-    def test_sign_of_first_resolved_safely_in_fewer_questions(self):
-        runs = ShapeCheckForAIRules()._sessions(fakes.partial, "ai", seeds=20, with_questions=True)
+    def test_sign_of_first_resolved_safely_in_fewer_questions_without_revision(self):
+        os.environ["MRI_MAX_REVISIONS"] = "0"
+        try:
+            runs = ShapeCheckForAIRules()._sessions(fakes.partial, "ai", seeds=20, with_questions=True)
+        finally:
+            del os.environ["MRI_MAX_REVISIONS"]
         self.assertEqual(sum(w for w, _, _ in runs), 0)
         qs = [q for _, _, q in runs]
         self.assertLess(sum(qs) / len(qs), 16.0)
         self.assertLess(max(qs), 20)
+
+    def test_sign_of_first_with_revision_is_still_safe_and_bounded(self):
+        # Revision (default on) spends extra questions giving the AI a second chance.
+        # Stated bound: no false diagnosis and never more than 24 questions here.
+        runs = ShapeCheckForAIRules()._sessions(fakes.partial, "ai", seeds=20, with_questions=True)
+        self.assertEqual(sum(w for w, _, _ in runs), 0)
+        self.assertLessEqual(max(q for _, _, q in runs), 24)
 
     def test_exploration_collects_wrong_answers_from_more_than_one_kind(self):
         from mri.engine import Session
@@ -243,3 +254,39 @@ class Efficiency(unittest.TestCase):
     def test_good_ai_rule_still_confirmed(self):
         runs = ShapeCheckForAIRules()._sessions(fakes.oracle, "ai", seeds=5)
         self.assertEqual(sum(r for _, r in runs), 5)
+
+
+class Revision(unittest.TestCase):
+    def test_revision_turns_unresolved_into_right_without_wrong(self):
+        on = ShapeCheckForAIRules()._sessions(fakes.partial, "ai", seeds=10, hidden_id="int_plus_negative_is_plus")
+        os.environ["MRI_MAX_REVISIONS"] = "0"
+        try:
+            off = ShapeCheckForAIRules()._sessions(fakes.partial, "ai", seeds=10, hidden_id="int_plus_negative_is_plus")
+        finally:
+            del os.environ["MRI_MAX_REVISIONS"]
+        self.assertEqual(sum(w for w, _ in on), 0)
+        self.assertGreater(sum(r for _, r in on), sum(r for _, r in off))
+
+    def test_cheater_still_never_admitted_with_revision(self):
+        runs = ShapeCheckForAIRules()._sessions(lambda _id: fakes.cheat, "ai", seeds=10)
+        self.assertEqual(sum(r for _, r in runs), 0)
+        self.assertEqual(sum(w for w, _ in runs), 0)
+
+    def test_revision_prompt_never_shows_a_hidden_answer(self):
+        rule = get_rule("frac_add_tops_add_bottoms")
+        obs = observations(rule.id, n=10)
+        correct = correct_rule("fractions")
+        first_hidden = obs[:2]
+        prompts = []
+
+        def ask(prompt):
+            prompts.append(prompt)
+            return "```python\ndef rule(n1, d1, n2, d2):\n    return (n1, d1)\n```"
+        adm = propose_and_admit(ask, "fractions", obs, correct, list(full_pool("fractions")), [],
+                                keep_hidden=first_hidden, fresh=obs[6:], previous_code="def rule(n1, d1, n2, d2):\n    return (n1, d1)")
+        self.assertTrue(all(o in adm.hidden_obs for o in first_hidden))
+        self.assertEqual(len(adm.hidden_obs), 3)
+        for o in adm.hidden_obs:
+            line = f"{o.problem.text()}  student wrote {format_answer(o.answer)}"
+            for p in prompts:
+                self.assertNotIn(line, p)
