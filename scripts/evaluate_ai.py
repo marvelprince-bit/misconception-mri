@@ -38,14 +38,20 @@ OUT = Path(__file__).resolve().parent.parent / "evidence"
 SHAPE_CHECK = "risk"
 
 
-def run(writer: str, seeds: int, gate: bool, domains=DOMAINS, seed_offset: int = 0) -> dict:
+def run(writer: str, seeds: int, gate: bool, domains=DOMAINS, seed_offset: int = 0,
+        hidden_set: str = "library") -> dict:
+    from mri.heldout_rules import HELD_OUT_RULES_4
     rows = []
     for domain in domains:
         if writer == "partial" and domain != "integers":
             continue  # the partial stand-in is written for integers only
-        for hidden in library(domain):
-            if hidden.is_correct:
-                continue
+        if hidden_set == "4":
+            # Rules written after the design freeze; the tool's list is complete, so the
+            # student's rule is simply not in it.
+            hiddens = [h for h in HELD_OUT_RULES_4 if h.domain == domain]
+        else:
+            hiddens = [h for h in library(domain) if not h.is_correct]
+        for hidden in hiddens:
             rules = [r for r in library(domain) if r.id != hidden.id]
             for seed in range(seed_offset, seed_offset + seeds):
                 ask = {"oracle": fakes.oracle(hidden.id), "cheat": fakes.cheat, "down": fakes.down,
@@ -98,6 +104,9 @@ def main() -> None:
                         default="oracle")
     parser.add_argument("--seeds", type=int, default=20)
     parser.add_argument("--domain", choices=list(DOMAINS), help="test one topic only (fewer API calls)")
+    parser.add_argument("--hidden-set", choices=["library", "4"], default="library",
+                        help="'library' (default): each library rule removed in turn (24 rules); "
+                             "'4': the 12 held-out set-4 rules, written after the design freeze")
     parser.add_argument("--seed-offset", type=int, default=0,
                         help="first simulated student; use e.g. 100 for fresh students never "
                              "used during development (results get their own file)")
@@ -119,6 +128,10 @@ def main() -> None:
 
     OUT.mkdir(exist_ok=True)
     tag = args.writer + ("" if args.shape_check == "risk" else f"_{args.shape_check}check")
+    if args.hidden_set == "4":
+        if args.writer in ("oracle", "occam", "messy", "partial"):
+            sys.exit("Those stand-ins copy a known reference answer; set 4 has none. Use cheat, down or a live model.")
+        tag += "_set4"
     if args.seed_offset:
         tag += f"_seeds{args.seed_offset}-{args.seed_offset + args.seeds - 1}"
     if live and (OUT / f"ai_results_{tag}.json").exists():
@@ -129,14 +142,16 @@ def main() -> None:
     os.environ["MRI_RAW_LOG"] = str(raw)
     gates = (True, False) if (args.both_gates or not live) else (True,)
     domains = (args.domain,) if args.domain else DOMAINS
-    results = {("on" if gate else "off"): run(args.writer, args.seeds, gate, domains, args.seed_offset) for gate in gates}
+    results = {("on" if gate else "off"): run(args.writer, args.seeds, gate, domains, args.seed_offset, args.hidden_set) for gate in gates}
     (OUT / f"ai_results_{tag}.json").write_text(json.dumps(results, indent=2))
 
     keys = ["sessions", "ai_called_pct", "admitted_pct", "admitted_rules_truly_right_pct",
             "final_right_pct", "final_wrong_pct", "final_no_diagnosis_pct", "mean_questions",
             "repair_used_pct", "admitted_after_repair_pct"]
-    n_rules = sum(1 for d in domains for r in library(d) if not r.is_correct
-                  and not (args.writer == "partial" and d != "integers"))
+    from mri.heldout_rules import HELD_OUT_RULES_4
+    n_rules = (sum(1 for h in HELD_OUT_RULES_4 if h.domain in domains) if args.hidden_set == "4" else
+               sum(1 for d in domains for r in library(d) if not r.is_correct
+                   and not (args.writer == "partial" and d != "integers")))
     print(f"\nAI rule-writer: {args.writer}, shape check {args.shape_check}   "
           f"({n_rules} hidden rules x {args.seeds} simulated students, "
           f"seeds {args.seed_offset} to {args.seed_offset + args.seeds - 1})")
