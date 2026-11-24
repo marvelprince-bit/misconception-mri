@@ -337,3 +337,43 @@ class LiveRunRegressions(unittest.TestCase):
         live = Problem("frac_sub", (3, 1, 4, 1, 3, 6))
         clean = Problem("frac_sub", (5, 3, 8, 2, 1, 6))
         self.assertGreater(Session.genericity(clean), Session.genericity(live))
+
+
+class UnknownLookAlikes(unittest.TestCase):
+    """Fresh-student check (seeds 100+, 23 Nov): with the student's rule REMOVED from the
+    list and no AI, the tool must abstain, not name a look-alike. Before the error-pattern
+    risk check and coincidence-free confirmations, 'always positive' was named as 'two
+    negatives make a positive' (9 of 30), and 'keep the larger bottom' as 'keep the first
+    bottom' when every question happened to put the larger bottom first."""
+
+    def _false_diagnoses(self, hidden_id, seeds=range(100, 130)):
+        from mri.engine import Session
+        from mri.pipeline import run_session
+        from mri.rules import library
+        from mri.student import SimulatedStudent
+        h = get_rule(hidden_id)
+        rules = [r for r in library(h.domain) if r.id != hidden_id]
+        bad = 0
+        for seed in seeds:
+            s = Session(h.domain, rules=rules, seed=seed)
+            st = run_session(s, SimulatedStudent(h, 0.0, seed=seed), ask=None).status
+            bad += st.state in ("diagnosed", "no_misconception")
+        return bad
+
+    def test_always_positive_not_named_as_look_alike(self):
+        self.assertEqual(self._false_diagnoses("int_always_positive"), 0)
+
+    def test_keep_larger_bottom_not_named_as_keep_first_bottom(self):
+        self.assertEqual(self._false_diagnoses("frac_add_tops_keep_larger_bottom"), 0)
+
+    def test_sub_tops_and_bottoms_not_named_as_look_alike(self):
+        self.assertEqual(self._false_diagnoses("sub_tops_and_bottoms"), 0)
+
+    def test_error_pattern_found(self):
+        from mri.engine import Observation, Session
+        from mri.problems import Problem
+        s = Session("integers", seed=0)
+        for args in [(-6, "+", -2), (-9, "+", -5)]:
+            p = Problem("integers", args)
+            s.observations.append(Observation(p, -s.correct.predict(p), "diagnose"))
+        self.assertTrue(s._error_patterns())

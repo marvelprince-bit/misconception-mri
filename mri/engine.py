@@ -265,7 +265,10 @@ class Session:
                  if shape(p) in pending and p not in asked and rule.predict(p) is not None]
         if not fresh:
             return None
-        problem = self.rng.choice(fresh)
+        # Most coincidence-free look-alike: a re-test where the numbers line up by accident
+        # (equal tops, say) would also fit a look-alike rule the tool does not know.
+        top = max(self.genericity(p) for p in fresh)
+        problem = self.rng.choice([p for p in fresh if self.genericity(p) == top])
         return Question(problem, "confirm", predicted=rule.predict(problem), predicted_rule=rule.id,
                         why="re-test: an earlier answer of this shape did not fit the rule")
 
@@ -324,7 +327,11 @@ class Session:
         else:
             tied = [o for o in options if o[0] == best]
             _, fresh, why = self.rng.choice(tied)
-        problem = self.pool[self.rng.choice(fresh)]
+        # Within the chosen kind, the question most free of numerical coincidences: a
+        # look-alike rule the tool does not know (equal tops, say) can only be told apart
+        # where the numbers do not line up by accident.
+        top = max(self.genericity(self.pool[i]) for i in fresh)
+        problem = self.pool[self.rng.choice([i for i in fresh if self.genericity(self.pool[i]) == top])]
         return Question(problem, "confirm", predicted=rule.predict(problem),
                         predicted_rule=rule.id, why=why)
 
@@ -396,27 +403,71 @@ class Session:
                         why=f"checking an AI-written rule on a shape not tested yet ({shape(problem)})")
 
     def _risk_question(self, rule: Rule) -> Question | None:
-        """The riskiest untested question for a known rule: a shape not tested yet (for
+        """The riskiest untested question for a known rule, from shapes not tested yet (for
         integers a shape also records which number is larger, so whether the answer
-        crosses zero), where the rule claims the correct answer, most contested first."""
+        crosses zero). Order: where the student's error pattern (if any) would show but the
+        rule does not predict it; the shape nearest to ones answered wrong (a look-alike
+        most often parts company right next to the evidence, e.g. the same question with
+        the order swapped); where the rule claims the correct answer; most contested;
+        freest of numerical coincidences."""
         asked = self._asked()
         seen = {shape(o.problem) for o in self.observations}
         correct = self.correct
+        patterns = self._error_patterns()
+        wrong = self._wrong_shape_counts()
         best, best_key = [], None
         for p in self.pool:
             if p in asked or shape(p) in seen:
                 continue
             claims_correct = correct is not None and rule.predict(p) == correct.predict(p)
-            key = (claims_correct, self.contestedness(p))
+            key = (self._pattern_breaks(p, rule, patterns), self._closeness(shape(p), wrong),
+                   claims_correct, self.contestedness(p), self.genericity(p))
             if best_key is None or key > best_key:
                 best, best_key = [p], key
             elif key == best_key:
                 best.append(p)
-        if not best or best_key[1] < 2:
+        if not best or (best_key[0] == 0 and best_key[3] < 2):
             return None
         problem = self.rng.choice(best)
         return Question(problem, "confirm", predicted=rule.predict(problem), predicted_rule=rule.id,
                         why=f"risk check: a shape where this rule claims the correct answer ({shape(problem)})")
+
+    # Simple ways a wrong answer can relate to the right one. If EVERY wrong answer seen
+    # so far follows one of them, the student may apply it more widely than the leading
+    # rule says; the risk check then goes where that would show.
+    ERROR_PATTERNS = {"made positive": abs, "sign flipped": lambda x: -x}
+
+    def _error_patterns(self) -> list:
+        correct = self.correct
+        if correct is None:
+            return []
+        wrong = [(correct.predict(o.problem), o.answer) for o in self.observations
+                 if o.answer is not None and o.answer != correct.predict(o.problem)]
+        if len(wrong) < 2:
+            return []
+        out = []
+        for f in self.ERROR_PATTERNS.values():
+            try:
+                if all(f(c) == a for c, a in wrong):
+                    out.append(f)
+            except TypeError:
+                pass
+        return out
+
+    def _pattern_breaks(self, problem: Problem, rule: Rule, patterns: list) -> int:
+        """How many fitted error patterns would give an answer here that the leading
+        rule does not predict."""
+        correct = self.correct
+        if not patterns or correct is None:
+            return 0
+        c, r = correct.predict(problem), rule.predict(problem)
+        n = 0
+        for f in patterns:
+            try:
+                n += f(c) != r
+            except TypeError:
+                pass
+        return n
 
     def _needs_every_kind(self, rule: Rule) -> bool:
         mode = self.diagnosis_needs_all_kinds
