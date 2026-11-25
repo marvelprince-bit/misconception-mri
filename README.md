@@ -136,6 +136,19 @@ Sets 3 and 4 were written by the same AI that designed the safeguards, so they m
 
 What is different here: the tool never labels a misconception from one answer. It chooses questions to separate rules, tests its own diagnosis with wrong-answer predictions made in advance, lets an AI write new rules only when they predict answers the AI never saw, and declines when the evidence is not there.
 
+## Web interface
+
+```
+pip install -r requirements.txt
+python app.py        # open http://127.0.0.1:5000
+```
+
+**Watch a scan:** pick a topic and the rule a simulated student secretly follows, and watch the tool's questions one at a time. You see each prediction written before the student answers, how its beliefs narrow, and the diagnosis with the evidence and practice questions. Tick "Take this rule off the tool's list" to make it meet a rule it has never seen: Claude then writes the rule as code (live with `ANTHROPIC_API_KEY`, otherwise replayed exactly from saved live run 10). Three ready cases: the correct-answer trap, a rule the tool has never seen, and a cheating AI.
+
+**Be the student:** answer the questions yourself, mistakes included, and see whether it finds your rule.
+
+The interface runs the same engine as the tests (`mri/scan.py` only records what happens).
+
 ## Quick start
 
 Python 3.10 or newer. Nothing to install.

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Misconception MRI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lightbox: #E8EDF1;
+    --panel: #FFFFFF;
+    --ink: #1B2631;
+    --muted: #5A6875;
+    --rule: #CBD5DD;
+    --dye: #6B3FA0;
+    --dye-soft: #F1EBF8;
+    --wrong: #C4422B;
+    --wrong-soft: #FBECE8;
+    --right: #1E7350;
+    --right-soft: #E7F3ED;
+    --radius-sm: 4px;
+    --radius-lg: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 17px; }
+  body {
+    margin: 0; background: var(--lightbox); color: var(--ink);
+    font-family: "Atkinson Hyperlegible", system-ui, sans-serif; line-height: 1.5;
+  }
+  a { color: var(--dye); }
+  :focus-visible { outline: 3px solid var(--dye); outline-offset: 2px; }
+
+  header { padding: 2rem 2rem 1.25rem; max-width: 1280px; margin: 0 auto; }
+  header h1 { margin: 0; font-size: 2.35rem; letter-spacing: -0.02em; line-height: 1.1; }
+  header p { margin: 0.4rem 0 0; color: var(--muted); max-width: 62ch; font-size: 1.05rem; }
+
+  nav.tabs { display: flex; gap: 0.25rem; max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
+  nav.tabs button {
+    font: inherit; font-weight: 700; border: 0; background: transparent; color: var(--muted);
+    padding: 0.6rem 1rem; border-radius: var(--radius-sm) var(--radius-sm) 0 0; cursor: pointer;
+  }
+  nav.tabs button[aria-selected="true"] { background: var(--panel); color: var(--ink); }
+
+  main { max-width: 1280px; margin: 0 auto; padding: 0 2rem 4rem; }
+  .view { background: var(--panel); border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg); padding: 1.75rem; }
+  .grid { display: grid; grid-template-columns: 280px minmax(0, 1fr) 290px; gap: 2rem; align-items: start; }
+  .grid > * { min-width: 0; }
+  @media (max-width: 1080px) { .grid { grid-template-columns: 1fr; } .believes { position: static !important; } }
+  @media (max-width: 600px) {
+    header, nav.tabs, main { padding-left: 1rem; padding-right: 1rem; }
+    .view { padding: 1rem; }
+    header h1 { font-size: 1.9rem; }
+    .problem { font-size: 1.35rem; }
+  }
+
+  label { display: block; font-weight: 700; font-size: 0.9rem; margin: 1rem 0 0.3rem; }
+  select, input[type=text] {
+    width: 100%; font: inherit; font-size: 0.95rem; padding: 0.5rem 0.6rem; border: 1px solid var(--rule);
+    border-radius: var(--radius-sm); background: #fff; color: var(--ink);
+  }
+  .check { display: flex; gap: 0.5rem; align-items: flex-start; font-weight: 400; font-size: 0.92rem; }
+  .check input { margin-top: 0.3rem; accent-color: var(--dye); }
+  button.primary, button.quiet {
+    font: inherit; font-weight: 700; cursor: pointer; border-radius: var(--radius-sm); padding: 0.6rem 1rem;
+  }
+  button.primary { background: var(--ink); color: #fff; border: 0; }
+  button.primary:disabled { opacity: 0.45; cursor: default; }
+  button.quiet { background: transparent; border: 1px solid var(--rule); color: var(--ink); }
+  .controls .primary { width: 100%; margin-top: 1.25rem; }
+  .cases { margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); }
+  .cases p { margin: 0 0 0.5rem; font-weight: 700; font-size: 0.9rem; }
+  .cases button {
+    display: block; width: 100%; text-align: left; font: inherit; font-size: 0.92rem; background: none;
+    border: 0; border-left: 3px solid var(--rule); padding: 0.35rem 0 0.35rem 0.7rem; margin-bottom: 0.4rem;
+    color: var(--ink); cursor: pointer;
+  }
+  .cases button:hover { border-left-color: var(--dye); }
+  .cases small { display: block; color: var(--muted); }
+
+  .empty { color: var(--muted); padding: 3rem 0; max-width: 46ch; }
+  .student-line { margin: 0 0 1.25rem; font-size: 0.95rem; color: var(--muted); }
+  .student-line strong { color: var(--ink); }
+
+  h2 { font-size: 1.2rem; margin: 1.75rem 0 0.6rem; }
+  h2:first-child { margin-top: 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+  th { text-align: left; font-weight: 700; color: var(--muted); font-size: 0.85rem; padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--rule); }
+  td { padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--lightbox); }
+  .maths { font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ok { color: var(--right); font-weight: 700; }
+  .no { color: var(--wrong); font-weight: 700; }
+  .trap { background: var(--lightbox); border-radius: var(--radius-sm); padding: 0.9rem 1rem; margin-top: 0.9rem; font-size: 0.95rem; }
+  .trap ul { margin: 0.4rem 0 0; padding-left: 1.2rem; }
+
+  ol.scan { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+  ol.scan > li {
+    counter-increment: step; display: grid; grid-template-columns: 2.2rem 1fr; gap: 0.75rem;
+    padding: 0.9rem 0; border-bottom: 1px solid var(--lightbox);
+  }
+  ol.scan > li::before { content: counter(step); color: var(--muted); font-weight: 700; font-size: 0.95rem; padding-top: 0.3rem; }
+  ol.scan > li.ai-row { counter-increment: none; }
+  ol.scan > li.ai-row::before { content: ""; }
+  .step-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6rem 1rem; }
+  .problem { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+  .kind { font-size: 0.85rem; color: var(--muted); }
+  .why { font-size: 0.85rem; color: var(--muted); margin-top: 0.15rem; }
+  .exchange { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.6rem; align-items: stretch; }
+  .sealed {
+    border: 2px solid var(--dye); color: var(--dye); background: var(--dye-soft); border-radius: var(--radius-sm);
+    padding: 0.35rem 0.7rem; font-size: 0.92rem;
+  }
+  .sealed b { font-size: 1.15rem; margin-left: 0.25rem; }
+  .said { border-radius: var(--radius-sm); padding: 0.35rem 0.7rem; font-size: 0.92rem; background: var(--lightbox); }
+  .said b { font-size: 1.15rem; margin-left: 0.25rem; }
+  .said.right { background: var(--right-soft); }
+  .said.wrong { background: var(--wrong-soft); }
+  .verdict-tag { font-weight: 700; font-size: 0.9rem; align-self: center; }
+  .reveal { animation: land 420ms ease-out both; }
+  @keyframes land { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .reveal { animation: none; } }
+
+  .ai-box { border-left: 3px solid var(--dye); padding: 0.2rem 0 0.2rem 1rem; }
+  .ai-box p { margin: 0 0 0.4rem; font-size: 0.95rem; }
+  pre {
+    margin: 0.4rem 0 0; background: var(--ink); color: #E9EEF3; padding: 0.8rem 1rem; border-radius: var(--radius-sm);
+    font-size: 0.82rem; line-height: 1.45; overflow-x: auto; font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  }
+
+  .player { display: flex; gap: 0.6rem; margin: 1.25rem 0 0; align-items: center; flex-wrap: wrap; }
+  .player span { color: var(--muted); font-size: 0.9rem; }
+
+  .believes { position: sticky; top: 1rem; }
+  .believes h2 { margin-top: 0; }
+  .believes p.hint { color: var(--muted); font-size: 0.88rem; margin: 0 0 0.9rem; }
+  .bar { margin-bottom: 0.8rem; }
+  .bar .name { font-size: 0.88rem; line-height: 1.3; }
+  .bar .track { height: 10px; background: var(--lightbox); border-radius: 5px; margin-top: 0.3rem; overflow: hidden; }
+  .bar .fill { height: 100%; background: var(--ink); border-radius: 5px; transition: width 380ms ease; }
+  .bar.ai .fill { background: var(--dye); }
+  .bar .pct { font-size: 0.8rem; color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { .bar .fill { transition: none; } }
+
+  .result { margin-top: 2rem; padding: 1.5rem; border-radius: var(--radius-lg); background: var(--lightbox); }
+  .result .headline { font-size: 1.45rem; font-weight: 700; line-height: 1.25; margin: 0 0 0.5rem; max-width: 40ch; }
+  .result .sub { margin: 0 0 1rem; color: var(--muted); max-width: 70ch; }
+  .result.diagnosed { border-left: 6px solid var(--dye); }
+  .result.declined { border-left: 6px solid var(--muted); }
+  .result.clear { border-left: 6px solid var(--right); }
+  .key { margin-top: 1.25rem; font-size: 0.9rem; color: var(--muted); }
+  .key strong { color: var(--ink); }
+
+  .live-q { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin: 1rem 0; }
+  .live-q .problem { font-size: 2rem; }
+  .live-q input { width: 9rem; font-size: 1.3rem; font-weight: 700; }
+  .error { color: var(--wrong); font-size: 0.9rem; min-height: 1.3rem; }
+  .loading { color: var(--muted); padding: 2rem 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Misconception MRI</h1>
+  <p>Finds the wrong rule behind a student's maths answers, even when the answers are right. It names a rule only after predicting the student's next answers before they are given, and says so when it cannot tell.</p>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" id="tab-watch" aria-selected="true" aria-controls="view-watch">Watch a scan</button>
+  <button role="tab" id="tab-live" aria-selected="false" aria-controls="view-live">Be the student</button>
+</nav>
+
+<main>
+  <section class="view" id="view-watch" role="tabpanel" aria-labelledby="tab-watch">
+    <div class="grid">
+      <div class="controls">
+        <label for="topic">Topic</label>
+        <select id="topic"></select>
+        <label for="student">The simulated student secretly follows</label>
+        <select id="student"></select>
+        <label class="check" for="hide"><input type="checkbox" id="hide"> Take this rule off the tool's list, so it meets a rule it has never seen</label>
+        <div id="writer-wrap" hidden>
+          <label for="writer">AI that writes a new rule</label>
+          <select id="writer"></select>
+        </div>
+        <button class="primary" id="run">Start scan</button>
+
+        <div class="cases">
+          <p>Cases to try</p>
+          <button data-case="trap">All answers right, rule still wrong<small>Integers, the worksheet looks perfect</small></button>
+          <button data-case="unseen">A rule the tool has never seen<small>Mixed numbers; Claude writes the rule as code</small></button>
+          <button data-case="cheat">An AI that tries to cheat<small>It memorises answers; the tool refuses it</small></button>
+        </div>
+      </div>
+
+      <div id="scan-main">
+        <p class="empty">Pick a student and start a scan, or try one of the cases on the left. You will see each question the tool chooses, the answer it predicts before the student replies, and what it concludes.</p>
+      </div>
+
+      <aside class="believes" id="believes" aria-live="polite"></aside>
+    </div>
+  </section>
+
+  <section class="view" id="view-live" role="tabpanel" aria-labelledby="tab-live" hidden>
+    <div class="grid">
+      <div class="controls">
+        <label for="live-topic">Topic</label>
+        <select id="live-topic"></select>
+        <button class="primary" id="live-start">Start as the student</button>
+        <p class="why" style="margin-top:1rem">Answer as a student would, mistakes included. Type fractions as 3/4, mixed numbers as 2 1/4. The tool uses the rules it knows; the AI step runs in the scan view.</p>
+      </div>
+      <div id="live-main"><p class="empty">Choose a topic and start. Try answering with a consistent mistake, for example adding tops and adding bottoms.</p></div>
+      <aside class="believes" id="live-believes" aria-live="polite"></aside>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let CAT = null, SCAN = null, shown = 0, timer = null;
+
+const CASES = {
+  trap:   { topic: "integers", student: "int_always_positive", hide: false },
+  unseen: { topic: "frac_sub", student: "sub_parts_separately", hide: true, writer: "replay" },
+  cheat:  { topic: "integers", student: "int_sign_of_first", hide: true, writer: "cheat" },
+};
+const KIND = { question: "Question", prediction: "Prediction test", extra: "Extra question" };
+
+async function api(path, body) {
+  const r = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {});
+  return r.json();
+}
+
+function fillStudents() {
+  const t = CAT.topics[$("#topic").value];
+  $("#student").innerHTML = t.students.map(s => `<option value="${s.id}">${esc(s.correct ? "No misconception (correct method)" : s.label)}</option>`).join("");
+}
+
+async function init() {
+  CAT = await api("/api/catalogue");
+  const opts = Object.entries(CAT.topics).map(([k, t]) => `<option value="${k}">${esc(t.title)}</option>`).join("");
+  $("#topic").innerHTML = opts; $("#live-topic").innerHTML = opts;
+  $("#writer").innerHTML = Object.entries(CAT.writers).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("");
+  fillStudents();
+}
+
+$("#topic").addEventListener("change", fillStudents);
+$("#hide").addEventListener("change", () => { $("#writer-wrap").hidden = !$("#hide").checked; });
+document.querySelectorAll("[data-case]").forEach(b => b.addEventListener("click", () => {
+  const c = CASES[b.dataset.case];
+  $("#topic").value = c.topic; fillStudents(); $("#student").value = c.student;
+  $("#hide").checked = c.hide; $("#writer-wrap").hidden = !c.hide;
+  if (c.writer) $("#writer").value = c.writer;
+  runScan();
+}));
+$("#run").addEventListener("click", runScan);
+
+async function runScan() {
+  clearInterval(timer);
+  $("#run").disabled = true;
+  $("#believes").innerHTML = "";
+  $("#scan-main").innerHTML = `<p class="loading">Running the scan${$("#hide").checked && $("#writer").value === "claude" ? " (live Claude can take a minute)" : ""}…</p>`;
+  const res = await api("/api/scan", { student: $("#student").value, hide: $("#hide").checked, writer: $("#writer").value });
+  $("#run").disabled = false;
+  if (res.error) { $("#scan-main").innerHTML = `<p class="error">${esc(res.error)}</p>`; return; }
+  SCAN = res; shown = 0;
+  renderScan();
+}
+
+function sheetHtml(s) {
+  if (!s.worksheet.length) return "";
+  const right = s.worksheet.filter(w => w.ok).length;
+  let h = `<h2>An ordinary worksheet first</h2><table><thead><tr><th>Question</th><th>Student wrote</th><th></th></tr></thead><tbody>`;
+  h += s.worksheet.map(w => `<tr><td class="maths">${esc(w.q)}</td><td class="maths">${esc(w.answer)}</td><td class="${w.ok ? "ok" : "no"}">${w.ok ? "right" : "wrong, correct is " + esc(w.correct)}</td></tr>`).join("");
+  h += `</tbody></table>`;
+  if (s.trap && s.trap.possible) {
+    h += `<div class="trap"><strong>Score ${right} out of ${s.worksheet.length}, yet ${s.trap.look_alikes.length} known wrong rules give these same answers.</strong> The worksheet tested ${s.trap.kinds_tested} of ${s.trap.kinds_total} kinds of question. A grade cannot tell these apart:<ul>${s.trap.look_alikes.slice(0, 4).map(l => `<li>${esc(l)}</li>`).join("")}${s.trap.look_alikes.length > 4 ? `<li>and ${s.trap.look_alikes.length - 4} more</li>` : ""}</ul></div>`;
+  }
+  return h;
+}
+
+function stepHtml(st, fresh) {
+  let ex = "";
+  if (st.predicted !== null && st.predicted !== undefined) {
+    ex += `<span class="sealed">Predicted before asking:<b>${esc(st.predicted)}</b></span>`;
+  }
+  ex += `<span class="said ${st.ok ? "right" : "wrong"} ${fresh ? "reveal" : ""}">Student:<b>${esc(st.answer)}</b></span>`;
+  if (st.matched === true) ex += `<span class="verdict-tag ok ${fresh ? "reveal" : ""}">Prediction matched</span>`;
+  else if (st.matched === false) ex += `<span class="verdict-tag no ${fresh ? "reveal" : ""}">Prediction failed</span>`;
+  if (!st.ok) ex += `<span class="verdict-tag ${fresh ? "reveal" : ""}" style="color:var(--muted);font-weight:400">correct is ${esc(st.correct)}</span>`;
+  return `<li><div><div class="step-head"><span class="problem">${esc(st.q)}</span><span class="kind">${KIND[st.kind] || esc(st.kind)}</span></div><div class="why">${esc(st.why)}</div><div class="exchange">${ex}</div></div></li>`;
+}
+
+function aiHtml(a) {
+  if (a.repair) return `<li class="ai-row"><div class="ai-box"><p><strong>The tool repairs the AI's rule.</strong> ${esc(a.verdict)}</p></div></li>`;
+  const title = a.revision ? "The AI revises its rule" : "No rule on the list fits. The AI writes one as code";
+  const verdict = a.admitted ? `<span class="ok">Admitted</span>` : `<span class="no">Rejected</span>`;
+  return `<li class="ai-row"><div class="ai-box"><p><strong>${title}.</strong> It saw ${a.shown} of the student's answers; ${a.hidden} more were kept hidden to test it.</p><p>${verdict}: ${esc(a.verdict.replace(/^(Admitted|Rejected):\s*/, ""))}</p>${a.code ? `<pre>${esc(a.code)}</pre>` : ""}</div></li>`;
+}
+
+function believesHtml(ranking, title = "What the tool believes") {
+  if (!ranking) return "";
+  return `<h2>${title}</h2><p class="hint">How likely each rule is, after this answer.</p>` + ranking.map(r =>
+    `<div class="bar ${r.ai ? "ai" : ""}"><div class="name">${esc(r.label)}</div><div class="track"><div class="fill" style="width:${Math.max(1, r.p * 100)}%"></div></div><div class="pct">${(r.p * 100).toFixed(r.p > 0.995 ? 1 : 0)}%</div></div>`).join("");
+}
+
+function resultHtml(s) {
+  const r = s.result;
+  let cls = "declined", head = "";
+  if (r.state === "diagnosed") {
+    cls = "diagnosed";
+    head = r.rule.source === "ai" ? (r.rule.repaired ? "Diagnosis: a new rule, written by the AI and repaired by the tool" : "Diagnosis: a new rule, written by the AI") : `Diagnosis: ${esc(r.rule.label)}`;
+  } else if (r.state === "no_misconception") { cls = "clear"; head = "No misconception: every kind of question answered correctly"; }
+  else head = "No diagnosis. The evidence is not strong enough to name a rule.";
+  let msg = r.message;
+  if (r.rule && msg.startsWith(r.rule.label)) msg = msg.slice(r.rule.label.length).trim().replace(/^\((.*)\)$/, "$1");
+  if (r.rule && r.rule.source === "ai") msg = msg.replace(/^AI-written rule, repaired by the tool \(see code\)\.\s*/, "").replace(/^\((.*)\)$/, "$1");
+  msg = msg ? msg.charAt(0).toUpperCase() + msg.slice(1).replace(/([^.])$/, "$1.") : "";
+  let h = `<div class="result ${cls}"><p class="headline">${head}</p><p class="sub">${esc(msg)} Kinds of question tested: ${r.kinds_tested} of ${r.kinds_total}.</p>`;
+  if (r.rule && r.rule.code) h += `<pre>${esc(r.rule.code)}</pre>`;
+  if (r.evidence.length) {
+    h += `<h2>Why</h2><table><thead><tr><th>Question</th><th>Student</th><th>This rule gives</th><th>Correct</th></tr></thead><tbody>` +
+      r.evidence.map(e => `<tr><td class="maths">${esc(e.q)}</td><td class="maths">${esc(e.student)}</td><td class="maths">${esc(e.rule)}</td><td class="maths">${esc(e.correct)}</td></tr>`).join("") + `</tbody></table>`;
+  }
+  if (r.practice.length) {
+    h += `<h2>Practise these next</h2><table><thead><tr><th>Question</th><th>The wrong rule gives</th><th>Correct</th></tr></thead><tbody>` +
+      r.practice.map(p => `<tr><td class="maths">${esc(p.q)}</td><td class="maths no">${esc(p.rule)}</td><td class="maths ok">${esc(p.correct)}</td></tr>`).join("") + `</tbody></table>`;
+  }
+  const v = s.answer_key.verdict;
+  h += `<p class="key">Checked against the answer key (simulated students only): the student really follows "${esc(s.answer_key.student_rule.replace(/\.\s*$/, ""))}". <strong>${v === "right" ? "The diagnosis is right." : v === "declined" ? "The tool declined rather than guess." : "The diagnosis is wrong."}</strong></p></div>`;
+  return h;
+}
+
+function renderScan() {
+  const s = SCAN, total = s.steps.length, done = shown >= total;
+  let h = `<p class="student-line">${esc(s.topic)}. The simulated student secretly follows: <strong>${esc(s.student.replace(/\.\s*$/, ""))}</strong>${s.hidden ? ". This rule is <strong>not on the tool's list</strong>." : "."}</p>`;
+  h += sheetHtml(s);
+  h += `<h2>The tool's questions</h2><ol class="scan">`;
+  for (let i = 0; i < shown; i++) {
+    h += stepHtml(s.steps[i], i === shown - 1);
+    s.ai.filter(a => a.after_step === i + 1).forEach(a => { h += aiHtml(a); });
+  }
+  if (shown === 0) s.ai.filter(a => a.after_step === 0).forEach(a => { h += aiHtml(a); });
+  h += `</ol>`;
+  if (!done) h += `<div class="player"><button class="primary" id="next">Next answer</button><button class="quiet" id="play">Play all</button><button class="quiet" id="skip">Show the result</button><span>${shown} of ${total} answers</span></div>`;
+  else h += resultHtml(s);
+  $("#scan-main").innerHTML = h;
+  $("#believes").innerHTML = shown ? believesHtml(s.steps[shown - 1].ranking) : `<h2>What the tool believes</h2><p class="hint">Every rule on the list starts as possible. Answers narrow it down.</p>`;
+  if (!done) {
+    $("#next").onclick = () => { shown++; renderScan(); };
+    $("#play").onclick = () => { clearInterval(timer); timer = setInterval(() => { shown++; renderScan(); if (shown >= total) clearInterval(timer); }, 1300); };
+    $("#skip").onclick = () => { clearInterval(timer); shown = total; renderScan(); };
+  }
+}
+
+/* ---------- be the student ---------- */
+let LIVE = null;
+$("#live-start").addEventListener("click", async () => {
+  LIVE = { steps: [] };
+  const res = await api("/api/start", { topic: $("#live-topic").value });
+  LIVE.sid = res.sid; LIVE.topic = res.topic;
+  renderLive(res);
+});
+
+function renderLive(res) {
+  let h = `<p class="student-line">${esc(LIVE.topic)}. You are the student.</p><ol class="scan">` + LIVE.steps.map((s, i) => stepHtml(s, i === LIVE.steps.length - 1)).join("") + `</ol>`;
+  if (res.question) {
+    const q = res.question;
+    h += `<div class="live-q"><span class="problem">${esc(q.q)} =</span><input type="text" id="live-answer" aria-label="Your answer" autocomplete="off"><button class="primary" id="live-send">Answer</button></div>`;
+    h += `<p class="why">${KIND[q.kind] || ""}: ${esc(q.why)}${q.predicted ? `. <span style="color:var(--dye)">The tool has already written down what it expects you to answer.</span>` : ""}</p><p class="error" id="live-error"></p>`;
+  } else if (res.result) {
+    const r = res.result;
+    const head = r.state === "diagnosed" ? `Diagnosis: ${esc(r.rule)}` : r.state === "no_misconception" ? "No misconception found" : "No diagnosis. Your answers do not match one known rule.";
+    h += `<div class="result ${r.state === "diagnosed" ? "diagnosed" : r.state === "no_misconception" ? "clear" : "declined"}"><p class="headline">${head}</p><p class="sub">${esc(r.message)}</p>`;
+    if (r.practice.length) h += `<h2>Practise these next</h2><table><thead><tr><th>Question</th><th>The wrong rule gives</th><th>Correct</th></tr></thead><tbody>` + r.practice.map(p => `<tr><td class="maths">${esc(p.q)}</td><td class="maths no">${esc(p.rule)}</td><td class="maths ok">${esc(p.correct)}</td></tr>`).join("") + `</tbody></table>`;
+    h += `</div>`;
+  }
+  $("#live-main").innerHTML = h;
+  const last = LIVE.steps[LIVE.steps.length - 1];
+  $("#live-believes").innerHTML = last ? believesHtml(last.ranking) : "";
+  const input = $("#live-answer");
+  if (input) {
+    input.focus();
+    const send = async () => {
+      const r = await api("/api/answer", { sid: LIVE.sid, answer: input.value });
+      if (r.error) { $("#live-error").textContent = r.error; return; }
+      LIVE.steps.push(r.step); renderLive(r);
+    };
+    $("#live-send").onclick = send;
+    input.addEventListener("keydown", e => { if (e.key === "Enter") send(); });
+  }
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('[role="tab"]').forEach(t => t.addEventListener("click", () => {
+  document.querySelectorAll('[role="tab"]').forEach(x => x.setAttribute("aria-selected", x === t));
+  $("#view-watch").hidden = t.id !== "tab-watch"; $("#view-live").hidden = t.id !== "tab-live";
+}));
+
+init();
+</script>
+</body>
+</html>
