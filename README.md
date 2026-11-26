@@ -6,7 +6,7 @@ Built for the Global AI Builder's Challenge (Devpost, November 21 to 28, 2026).
 
 Topics: adding and subtracting negative numbers; adding, subtracting (including mixed numbers), multiplying and dividing fractions.
 
-**Status, 23 Nov 2026:** engine, AI rule-writer (two live Claude runs by Emmanuel, plus stand-ins), demo, 88 unit tests and five evaluations work. Not yet done: a live run on the final design, a user interface, and any use by real students. Every number below comes from simulated students or from the published MaE examples.
+**Status, 25 Nov 2026:** engine, AI rule-writer (ten live Claude runs; the final design scored 24/24 with 0 wrong in both of its runs), web interface, 93 unit tests and five evaluations work. Not yet done: any use by real students. Every number below comes from simulated students or from the published MaE examples. The Devpost description is in [`DEVPOST.md`](DEVPOST.md).
 
 ## The problem
 
@@ -47,6 +47,8 @@ Research calls this the *correct answer trap*: AI tutors under-detect misconcept
    |---|---|---|---|---|
    | Writes the correct rule: before these changes -> now | 90.6% -> **100%** | 8.1% -> **0%** | 1.2% -> 0% | 13.88 -> 13.81 |
    | Copies only the shapes it saw wrong: before -> now | 30.7% -> 42.9% | 9.3% -> **0%** | 60.0% -> 57.1% | 16.57 -> 18.44 |
+   | Copies only the shapes it saw wrong, **final design** (repair, coverage; students 100 to 109) | **100%** | **0%** | 0% | 28.07 |
+   | Writes the correct rule, **final design** (students 100 to 109) | **100%** | **0%** | 0% | 15.94 |
 
    One number got worse and is kept visible: with the partial writer, incomplete AI rules pass the hidden-answer check more often (27.9% -> 48.6% of sessions), because the more varied questions leave fewer hidden answers in the shapes it copied. The shape check catches every one of them before it is named, so its final wrong rate is 0%. The hidden-answer check alone is not enough; the two checks work together.
 
@@ -154,7 +156,7 @@ The interface runs the same engine as the tests (`mri/scan.py` only records what
 Python 3.10 or newer. Nothing to install.
 
 ```bash
-python -m unittest discover -s tests              # 88 tests
+python -m unittest discover -s tests              # 93 tests
 python scripts/demo.py --list                     # every rule the tool knows
 python scripts/demo.py --student sub_smaller_from_larger
 python scripts/demo.py --student div_across_drop_remainder
