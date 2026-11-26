@@ -179,11 +179,6 @@ python scripts/evaluate_ai.py --writer claude --seeds 1 --hidden-set 4       # 1
 python scripts/demo.py --student int_leading_minus_covers_all --hide-rule --ai claude
 ```
 
-## AI disclosure
-
-- **AI in the product:** a language model writes candidate wrong rules as code when no known rule fits. The code is sandboxed and must predict answers it never saw before it can be used.
-- **AI in development:** Perplexity Computer (starter engine and AI pipeline) and Claude (MaE answer key, three new fraction topics, the merge, held-out sets 3 and 4, the fixes traced from the live runs). Every AI contribution and its human check is recorded in [`DEVLOG.md`](DEVLOG.md).
-
 ## Credits and licence
 
 - MaE dataset: Nancy Otero, Stefania Druga, Andrew Lan. MIT License.

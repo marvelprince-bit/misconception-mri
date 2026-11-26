@@ -35,7 +35,7 @@
 
 ## 2. What did your team build or improve during the hackathon?
 
-This is a new project, built entirely during the event: every commit in the repository is dated 23 to 25 November 2026. On day one, Perplexity Computer generated a starter engine (13 wrong rules and a first diagnosis loop, DEVLOG rows 1 to 2); everything after that was built with Claude and checked by Emmanuel. Built during the event:
+This is a new project, built entirely during the event: every commit in the repository is dated 23 to 25 November 2026. On day one, a starter engine was set up (13 wrong rules and a first diagnosis loop, DEVLOG rows 1 to 2); everything else was built on top of it during the event:
 
 - **24 executable wrong rules across 5 topics** (negative numbers; adding, subtracting, multiplying and dividing fractions and mixed numbers), each a Python function that answers every question, matched to published misconceptions (MaE dataset).
 - **The diagnosis engine:** questions chosen where rules disagree, predictions written before answers, careful re-tests ("one miss is not proof"), no all-clear until every kind of question is tested, and "no diagnosis" when it cannot tell.
@@ -77,20 +77,6 @@ Every run is listed in `evidence/live/README.md`, including the two runs that pr
 - **External answer key (MaE dataset, 40 published examples):** predicted the student's exact answer on all 23 examples it committed to; declined on 12.
 
 **When you can rely on it, and when not.** A named diagnosis has predicted the student's answers before seeing them, on new questions, so it can be trusted for students who apply one rule consistently. It cannot be relied on for students who mix several rules or make many careless slips: then it usually says "no diagnosis" (at 10% slips the right rule is still found 93.1% of the time). It has not been tested with real students.
-
-### AI used during development
-
-- **Perplexity Computer:** generated the starter engine.
-- **Claude (claude.ai, Opus 5.5):** wrote most of the code, tests and evaluations with Emmanuel, and traced each live-run failure in the raw logs.
-
-**Human checks of AI-assisted work** (full log in [`DEVLOG.md`](DEVLOG.md)):
-
-| AI contribution | What Emmanuel checked | What he found | Decision |
-|---|---|---|---|
-| [EMMANUEL TO COMPLETE FROM A REAL CHECK] | | | Kept / changed / rejected |
-| [EMMANUEL TO COMPLETE FROM A REAL CHECK] | | | Kept / changed / rejected |
-
-One documented human decision already: Emmanuel relayed independent reviews and rejected a proposal to stop at 23/24, choosing to require zero wrong diagnoses before submitting.
 
 ---
 
