@@ -102,6 +102,7 @@
     padding: 0.9rem 0; border-bottom: 1px solid var(--lightbox);
   }
   ol.scan > li::before { content: counter(step); color: var(--muted); font-weight: 700; font-size: 0.95rem; padding-top: 0.3rem; }
+  ol.scan > li > div { min-width: 0; }
   ol.scan > li.ai-row { counter-increment: none; }
   ol.scan > li.ai-row::before { content: ""; }
   .step-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6rem 1rem; }
@@ -155,7 +156,7 @@
 
   .live-q { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin: 1rem 0; }
   .live-q .problem { font-size: 2rem; }
-  .live-q input { width: 9rem; font-size: 1.3rem; font-weight: 700; }
+  .live-q input { width: 13rem; font-size: 1.3rem; font-weight: 700; }
   .error { color: var(--wrong); font-size: 0.9rem; min-height: 1.3rem; }
   .loading { color: var(--muted); padding: 2rem 0; }
 </style>
@@ -300,7 +301,7 @@ function aiHtml(a) {
   if (a.repair) return `<li class="ai-row"><div class="ai-box"><p><strong>The tool repairs the AI's rule.</strong> ${esc(a.verdict)}</p></div></li>`;
   const title = a.revision ? "The AI revises its rule" : "No rule on the list fits. The AI writes one as code";
   const verdict = a.admitted ? `<span class="ok">Admitted</span>` : `<span class="no">Rejected</span>`;
-  return `<li class="ai-row"><div class="ai-box"><p><strong>${title}.</strong> It saw ${a.shown} of the student's answers; ${a.hidden} more were kept hidden to test it.</p><p>${verdict}: ${esc(a.verdict.replace(/^(Admitted|Rejected):\s*/, ""))}</p>${a.code ? `<pre>${esc(a.code)}</pre>` : ""}</div></li>`;
+  return `<li class="ai-row"><div class="ai-box"><p><strong>${title}.</strong> It saw ${a.shown} of the student's answers; ${a.hidden} more ${a.hidden === 1 ? "was" : "were"} kept hidden to test it.</p><p>${verdict}: ${esc(a.verdict.replace(/^(Admitted|Rejected):\s*/, ""))}</p>${a.code ? `<pre>${esc(a.code)}</pre>` : ""}</div></li>`;
 }
 
 function believesHtml(ranking, title = "What the tool believes") {
