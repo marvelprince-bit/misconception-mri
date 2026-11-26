@@ -234,6 +234,8 @@ async function api(path, body) {
 function fillStudents() {
   const t = CAT.topics[$("#topic").value];
   $("#student").innerHTML = t.students.map(s => `<option value="${s.id}">${esc(s.correct ? "No misconception (correct method)" : s.label)}</option>`).join("");
+  const firstWrong = t.students.find(s => !s.correct);
+  if (firstWrong) $("#student").value = firstWrong.id;
 }
 
 async function init() {

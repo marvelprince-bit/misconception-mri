@@ -16,6 +16,7 @@ from mri import scan
 
 WEB = Path(__file__).resolve().parent / "web"
 app = Flask(__name__)
+app.json.sort_keys = False  # keep topics in teaching order: negatives, then fractions
 
 
 @app.get("/")

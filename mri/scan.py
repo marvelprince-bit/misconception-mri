@@ -30,7 +30,9 @@ def _count(x) -> int:
 def catalogue() -> dict:
     """Topics and the simulated students available in each."""
     out = {}
-    for domain, rules in LIBRARY.items():
+    order = ["integers", "fractions", "frac_sub", "frac_mul", "frac_div"]
+    for domain in sorted(LIBRARY, key=lambda d: order.index(d) if d in order else len(order)):
+        rules = LIBRARY[domain]
         out[domain] = {
             "title": TITLES.get(domain, domain),
             "students": [{"id": r.id, "label": r.label, "correct": r.is_correct} for r in rules],
