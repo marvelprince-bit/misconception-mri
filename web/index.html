@@ -69,7 +69,9 @@
   button.primary:disabled { opacity: 0.45; cursor: default; }
   button.quiet { background: transparent; border: 1px solid var(--rule); color: var(--ink); }
   .controls .primary { width: 100%; margin-top: 1.25rem; }
-  .cases { margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); }
+  .cases { margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--rule); }
+  .setup-title { margin: 0; font-weight: 700; font-size: 0.9rem; }
+  .setup-title + label { margin-top: 0.6rem; }
   .cases p { margin: 0 0 0.5rem; font-weight: 700; font-size: 0.9rem; }
   .cases button {
     display: block; width: 100%; text-align: left; font: inherit; font-size: 0.92rem; background: none;
@@ -173,6 +175,13 @@
   <section class="view" id="view-watch" role="tabpanel" aria-labelledby="tab-watch">
     <div class="grid">
       <div class="controls">
+        <div class="cases first">
+          <p>Cases to try</p>
+          <button data-case="trap">All answers right, rule still wrong<small>Integers, the worksheet looks perfect</small></button>
+          <button data-case="unseen">A rule the tool has never seen<small>Mixed numbers; Claude writes the rule as code</small></button>
+          <button data-case="cheat">An AI that tries to cheat<small>It memorises answers; the tool refuses it</small></button>
+        </div>
+        <p class="setup-title">Or set up your own scan</p>
         <label for="topic">Topic</label>
         <select id="topic"></select>
         <label for="student">The simulated student secretly follows</label>
@@ -184,12 +193,6 @@
         </div>
         <button class="primary" id="run">Start scan</button>
 
-        <div class="cases">
-          <p>Cases to try</p>
-          <button data-case="trap">All answers right, rule still wrong<small>Integers, the worksheet looks perfect</small></button>
-          <button data-case="unseen">A rule the tool has never seen<small>Mixed numbers; Claude writes the rule as code</small></button>
-          <button data-case="cheat">An AI that tries to cheat<small>It memorises answers; the tool refuses it</small></button>
-        </div>
       </div>
 
       <div id="scan-main">
